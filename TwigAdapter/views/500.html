@@ -1,0 +1,62 @@
+<html>
+    <head>
+        <title>Error</title>
+        <style>
+            body { 
+                font-family: consolas;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                background-color: #0414a7;
+                color: #e0e2f4;
+            }
+
+            .container {
+                margin: 1.5em;
+            }
+
+            .link {
+                color: #e0e2f4;
+            }
+
+            .title {
+                background-color: #aaaaaa;
+                color: #0414a7;
+            }
+
+            .nav {
+                text-align: right;
+            }
+        </style>
+    </head>
+
+    <body>
+        <main class="container">
+            <h1><span class="title">Http - 500</span></h1>
+            <p>Ha ocurrido un error en el servidor:</p>
+            <nav class="nav">
+                <a href="/" class="link">Ir al inicio</a>&nbsp;
+            </nav>
+
+            <p>
+                <b>Mensaje: </b><span>{{message}}</span><br/>
+                <b>Tipo: </b>
+                <span>{{error.class}}</span>
+                <span>({{error.code}})</span><br/>
+                <b>Archivo: </b>
+                <span>{{error.file}}</span>
+                <span>({{error.line}})</span><br/>
+            </p>
+
+            <b>Traza:</b>
+            <ul>
+                {% for trace in error.trace %}
+                    <li>{{trace.file}} (Línea: {{trace.line}})</li>
+                {% endfor %}
+            </ul>
+        </main>
+    </body>
+</html>
