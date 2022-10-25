@@ -1,6 +1,6 @@
 <?php
 
-namespace CaviaApps\TwigAdapter;
+namespace IrbisApps\TwigAdapter;
 
 use Irbis\Controller as iController;
 use Irbis\Server;
