@@ -1,2 +1,4 @@
 # ignore ini files
 *.ini
+# ignore CMS module content 
+**/Cms/content
