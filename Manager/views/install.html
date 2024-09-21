@@ -1,0 +1,44 @@
+{% extends "@irbis/views/layout.html" %}
+
+{% block title %}<title>Instalar</title>{% endblock %}
+
+{% block content %}
+<div class="window active" style="left:50%; transform: translate(-50%, -50%); top: 200px; max-width: 450px">
+	<div class="title-bar">
+		<div class="title-bar-text">Instalar</div>
+		{% if irbis_installed %}
+		<div class="title-bar-controls">
+			<button aria-label="Close" onclick="location.href = '{{desktop_path ?: '/'}}'"></button>
+		</div>
+		{% endif %}
+	</div>
+		
+	<form class="window-body has-space" method="POST">
+		{% if not installed %}
+		<p>
+			IRBIS, un administrador de aplicaciones, puede elegir entre diversas aplicaciones
+			e instalarlas para así tener un sistema personalizado a sus necesidades.
+		</p>
+		{% else %}
+		<p>
+			¡Agregue más aplicaciones a su sistema!
+		</p>
+		{% endif %}
+
+		<div class="has-scrollbar" style="max-width: 350px; overflow-y: auto;">
+		{% for app in applications %}
+		<div class="field-row">
+			<input type="checkbox" name="apps[]" value="{{ app.namespace }}" id="{{ app.namespace }}" {{ app.isAssembled() ? 'checked' }}/>
+			<label for="{{ app.namespace }}">{{ app.namespace }}</label>
+		</div>
+		{% endfor %}
+		</div>
+
+		<div class="field-row" style="text-align: center; display: block;">
+			<button name="install" class="button is-info">
+				Instalar
+			</button>
+		</div>
+	</form>
+</div>
+{% endblock %}

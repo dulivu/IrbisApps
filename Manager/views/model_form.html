@@ -1,0 +1,22 @@
+{% extends "@irbis/views/layout.html" %}
+{% from '@irbis/views/model_tools.html' import modelField %}
+
+{% block content %}
+<ul role="menubar">
+    <li role="menuitem" tabindex="0" onclick="document.getElementById('model_form').submit()">Guardar</li>
+    <li role="menuitem" tabindex="0" onclick="window.location = '/irbis/model/{{model[__name]}}/insert'">Descartar</li>
+</ul>
+
+<div style="padding: 1em;">
+    <form id="model_form" method="POST" autocomplete="off">
+        {% set form_view = attribute(model, '__form_view') %}
+        {% if form_view %}
+            {{include(form_view)}}
+        {% else %}
+            {% for prop in properties %}
+                {{ modelField(prop, model) }}
+            {% endfor %}
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

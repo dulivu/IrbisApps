@@ -1,0 +1,147 @@
+{% macro modelManager(models, context_id) %}
+{# 
+    param: models, debe ser un arreglo [key, label]
+    param: context_id, el id del menu contextual debe ser unico en la vista
+    pensado para utilizar el resultado de availableModels
+#}
+{{ _self.modelActions(context_id) }}
+<ul is="@irbis/model-manager.js" 
+class="tree-view has-collapse-button has-connector">
+    {% for model in models %}
+      <li>
+        <details>
+            <summary 
+                data-model="{{model[0]}}"
+                data-contextmenu="{{context_id}}"
+                event-click="fetchRecords" 
+                event-contextmenu="showActions"
+            >{{model[1]}}</summary>
+            {# lista de registros a deplegar #}
+            <ul data-model="{{model[0]}}" style="user-select: none;"></ul>
+        </details>
+      </li>
+    {% endfor %}
+</ul>
+{% endmacro %}
+
+{% macro modelActions(id) %}
+{#
+    param: id, el id del menu contextual debe ser unico en la vista
+#}
+<ul id="{{id}}" is="@irbis/model-actions.js" 
+    role="menu" class="can-hover" 
+    oncontextmenu="event.preventDefault();"
+    style="width: 200px; display:none; position: absolute; z-index: 999;">
+
+    <li event-click="actionNew" role="menuitem" tabindex="0">
+        <i class="fa fa-plus-circle"></i>
+        <a>Nuevo</a>
+    </li>
+    <li event-click="actionSearch" role="menuitem" tabindex="0">
+        <i class="fa fa-search"></i>
+        <a>Buscar</a>
+    </li>
+    <li role="menuitem" tabindex="0">
+        <i class="fa fa-search-plus"></i>
+        <a>Filtro</a>
+    </li>
+    <li event-click="actionRefresh" role="menuitem" tabindex="0">
+        <i class="fa fa-refresh"></i>
+        <a>Refrescar</a>
+    </li>
+    <!-- <li role="menuitem" tabindex="0" aria-haspopup="true">
+        Sort by
+        <ul role="menu">
+        <li role="menuitem"><a href="#menu">Name</a></li>
+        <li role="menuitem"><a href="#menu">Size</a></li>
+        <li role="menuitem"><a href="#menu">Item type</a></li>
+        <li role="menuitem"><a href="#menu">Date modified</a></li>
+        </ul>
+    </li> -->
+</ul>
+{% endmacro %}
+
+{% macro modelField(prop, model) %}
+{#
+    param: prop, debe ser una propiedad de un modelo
+#}
+<div class="field-row">
+    {% set record = model[0] %}
+    {% set value = record ? attribute(record, prop.name) : '' %}
+
+    {% set attribute_id = 'id="'~prop.name~'"' %}
+    {% set attribute_for = 'for="'~prop.name~'"' %}
+    {% set attribute_name = prop.readonly ? '' : 'name="'~prop.name~'"' %}
+    {% set attribute_readonly = prop.readonly ? 'readonly' : '' %}
+    {% set attribute_value = record ? 'value="'~value~'"' : 'value="'~prop.default~'"' %}
+    {% set attribute_text = record and prop.type == 'n1' ? 'value="'~attribute(value, 'name')~'"' : '' %}
+    {% set attribute_checked = record ? (value ? 'checked' : '') : (prop.default ? 'checked' : '') %}
+
+    {% if prop.type == 'n1' %}
+        <label {{attribute_for|raw}} class="label">{{prop.label}}</label>
+        <div class="combobox">
+            <input type="hidden" 
+                {{attribute_value|raw}}
+                {{attribute_name|raw}}/>
+            <input type="text"
+                is="@irbis/model-field-n1.js" 
+                {{attribute_id|raw}}
+                {{attribute_readonly|raw}}
+                {{attribute_text|raw}}
+                event-keyup="searchText"
+                event-blur="selectItem"
+                role="combobox"
+                aria-owns="{{prop.name}}-listbox"
+                data-target-model="{{prop.target_model}}" />
+            <button type="button" tabindex="-1"></button>
+            <ul role="listbox" id="{{prop.name}}-listbox"
+                style="display:none; width:170px; position:absolute; z-index:999;">
+            </ul>
+        </div>
+    {% elseif prop.type == '1n' or prop.type == 'nm' %}
+        {% set list_view = attribute(value, '__list_view') %}
+        {% if list_view %}
+            {{ include(list_view, {'model': value}) }}
+        {% endif %}
+    {% elseif prop.type == 'integer' or prop.type == 'int' %}
+        <label {{attribute_for|raw}}>{{prop.label}}</label>
+        <input type="number" 
+            {{attribute_id|raw}}
+            {{attribute_value|raw}}
+            {{attribute_name|raw}}
+            {{attribute_readonly|raw}}/>
+    {% elseif prop.type == 'date' %}
+        <label {{attribute_for|raw}}>{{prop.label}}</label>
+        <input type="date" 
+            {{attribute_id|raw}}
+            {{attribute_value|raw}}
+            {{attribute_name|raw}}
+            {{attribute_readonly|raw}}/>
+
+    {% elseif prop.type == 'datetime' %}
+        <label {{attribute_for|raw}}>{{prop.label}}</label>
+        <input type="datetime-local" 
+            {{attribute_id|raw}}
+            {{attribute_value|raw}}
+            {{attribute_name|raw}}
+            {{attribute_readonly|raw}}/>
+
+    {% elseif prop.type == 'boolean' or prop.type == 'bool' %}
+        <input type="checkbox" 
+            {{attribute_id|raw}}
+            {{attribute_checked|raw}}
+            {{attribute_name|raw}}
+            {{attribute_readonly|raw}}/>
+        <label {{attribute_for|raw}}>{{prop.label}}</label>
+
+    {% else %}
+        <label {{attribute_for|raw}}>{{prop.label}}</label>
+        <input type="text" 
+            {{attribute_id|raw}}
+            {{attribute_value|raw}}
+            {{attribute_name|raw}}
+            {{attribute_readonly|raw}}/>
+    {% endif %}
+
+</div>
+{% endmacro %}

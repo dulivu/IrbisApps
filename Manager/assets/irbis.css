@@ -1,0 +1,116 @@
+@import url(./7.css);
+
+body { background-color: #f0f0f0; margin:0; padding:0; }
+
+/* dar un ancho a las etiquetas de los campos w7.css */
+.field-row label:has(+ input), .field-row label.label {
+    min-width: 10em;
+}
+
+/* centra el un fa icon en los menus w7.css */
+ul [role=menuitem] .fa {
+    left: 7px;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+i + span {
+    margin-left: .33em;
+}
+
+ul[role=listbox] li:hover {
+    background-color: #f0f0f0;
+}
+ul[role=listbox] li.selected {
+    background-color: #e0e0e0;
+}
+
+/* emula un boton en una etiqueta a, w7.css */
+a.button {
+    height: 18px;
+    padding: 2px 8px;
+    border: 1px solid #F3F3F3;
+    -moz-box-shadow: 0 0 0 1px #707070;
+    -webkit-box-shadow: 0 0 0 1px #707070;
+    box-shadow: 0 0 0 1px #707070;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    background: -moz-linear-gradient(top, #F2F2F2 0%, #EBEBEB 50%, #DDDDDD 51%, #CFCFCF 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0,#F2F2F2), color-stop(0.5,#EBEBEB),color-stop(0.51,#DDDDDD),color-stop(1,#CFCFCF));
+    background: linear-gradient(top, #F2F2F2 0%, #EBEBEB 50%, #DDDDDD 51%, #CFCFCF 100%);
+    font: normal 12px sans-serif;
+    color: black;
+    text-decoration: none;
+}
+a.button:hover {
+    border: 1px solid #ECF7FD;
+    -moz-box-shadow: 0 0 0 1px #3C7FB1;
+    -webkit-box-shadow: 0 0 0 1px #3C7FB1;
+    box-shadow: 0 0 0 1px #3C7FB1;
+    background: -moz-linear-gradient(top, #EAF6FD 0%, #D9F0FC 50%, #BEE6FD 51%, #A7D9F5 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0,#EAF6FD), color-stop(0.5,#D9F0FC),color-stop(0.51,#BEE6FD),color-stop(1,#A7D9F5));
+    background: linear-gradient(top, #EAF6FD 0%, #D9F0FC 50%, #BEE6FD 51%, #A7D9F5 100%);
+}
+a.button:active {
+    padding: 2px 7px 3px 9px;
+    border: 1px solid #73A7C4;
+    border-bottom: 0;
+    -moz-box-shadow: 0 0 0 1px #2C628B;
+    -webkit-box-shadow: 0 0 0 1px #2C628B;
+    box-shadow: 0 0 0 1px #2C628B;
+    background: -moz-linear-gradient(top, #E5F4FC 0%, #C4E5F6 50%, #98D1EF 51%, #68B3DB 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0,#E5F4FC), color-stop(0.5,#C4E5F6),color-stop(0.51,#98D1EF),color-stop(1,#68B3DB));
+}
+
+:root {
+    --font: 9pt "Segoe UI", "SegoeUI", "Noto Sans", sans-serif;
+    --surface: #f0f0f0;
+    --button-highlight: #fff;
+    --button-face: #f2f2f2;
+    --button-face-hover: #eaf6fd;
+    --button-face-active: #c4e5f6;
+    --button-face-disabled: #f4f4f4;
+    --button-shade-light: #ebebeb;
+    --button-shade-light-default: #c3dcea;
+    --button-shade-light-hovered: #bee6fd;
+    --button-shade-light-active: #98d1ef;
+    --button-shade-dark: #cfcfcf;
+    --button-shadow: inset 0 0 0 1px #fff c;
+    --button-shadow-active: inset 1px 1px 0 #000 3, inset -1px 1px 0 #000 1;
+    --button-border: 1px solid;
+    --button-border-color: #8e8f8f;
+    --button-border-color-default: #5586a3;
+    --button-border-color-hovered: #3c7fb1;
+    --button-border-color-active: #6d91ab;
+    --button-border-color-disabled: #aeb2b5;
+    --button-text-color-disabled: #838383;
+    --button-gradient: linear-gradient(to bottom, var(--button-face) 45%, var(--button-shade-light) 45%, var(--button-shade-dark));
+    --button-gradient-hovered: linear-gradient(to bottom, var(--button-face-hover) 45%, var(--button-shade-light-hovered) 45%, #a7d9f5);
+    --button-gradient-active: linear-gradient(to bottom, #e5f4fc, var(--button-face-active) 30% 50%, var(--button-shade-light-active) 50%, #68b3db);
+    --element-spacing: 8px;
+    --grouped-element-spacing: 6px;
+    --border-radius: 3px;
+    --border-width: 1px;
+}
+
+input[type="date"], input[type="datetime-local"] {
+    height: 23px;
+}
+input[type="date"], input[type="datetime-local"] {
+    font: var(--font);
+    padding: 3px 4px 5px;
+    border: 1px solid #ccc;
+    border-top-color: var(--button-border-color);
+    border-radius: 2px;
+    background-color: var(--button-highlight);
+    box-sizing: border-box;
+}
+input[type="date"]:focus, input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: var(--button-shade-light-hovered);
+    border-top-color: var(--button-shade-light-active);
+}
