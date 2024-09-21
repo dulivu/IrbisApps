@@ -46,6 +46,17 @@ class Controller extends iController {
 		$server = Server::getInstance();
 		$request = Request::getInstance();
 
+		# create content directory if not exists
+		if (!is_dir($this->file('/content'))) {
+			mkdir($this->file('/content'), 0777, true);
+			mkdir($this->file('/content/images'), 0777, true);
+			mkdir($this->file('/content/fonts'), 0777, true);
+			mkdir($this->file('/content/templates'), 0777, true);
+			mkdir($this->file('/content/styles'), 0777, true);
+			mkdir($this->file('/content/scripts'), 0777, true);
+			mkdir($this->file('/content/others'), 0777, true);
+		}
+
 		$server->getController('auth')->auth_path = $request->base.'/cms';
 		$server->getController('twig')->environment->addFilter(new TwigFilter('asset', [$this, 'asset']));
 		$server->getController('twig')->environment->addFunction(new TwigFunction('readFiles', [$this, 'readFiles']));
