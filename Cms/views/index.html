@@ -1,0 +1,211 @@
+{% extends "@tools/layout.html" %}
+
+{% macro filesBlock(title, files, valid_extensions = [], file_icon = "fa-file-o") %}
+	<h3 class="file-block-title">{{title}}</h3>
+	<ul class="file-block-list"
+		data-file-icon="{{ file_icon }}"
+		data-valid-extensions="{{ valid_extensions|join(' ') }}">
+		{% for file in files %}
+		<li>
+			<a event-click="openFileAction">
+				<i class="fa {{file_icon}}"></i><span>{{file}}</span>
+			</a>
+		</li>
+		{% endfor %}
+	</ul>
+{% endmacro %}
+
+{% block assets %}
+<style>
+	:root {
+		--bg-content: #2d2d2d;
+		--bg-back: #1e1e1e;
+		--tx-color: #d4d4d4;
+		--tx-content: #9f9f9f;
+		--bg-btn: #3d3d3d;
+	}
+	body {font-family: monospace; background: var(--bg-back); color: var(--tx-color); padding:1em}
+	input {font-family: monospace;}
+	button {font-family: monospace;}
+	/* HEADER */
+	.header {
+		background: var(--bg-content);
+		color: var(--tx-color);
+		padding: .5em 1em;
+		margin-bottom: 1em;
+		user-select: none;
+	}
+	.header-left {
+		float: left;
+	}
+	.header-right {
+		float: right;
+	}
+	.header a {
+		color: var(--tx-color);
+		text-decoration: none;
+	}
+	/* TABS */
+	.tabs {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	.tabs > input[type="radio"] {
+		position: absolute;
+		opacity: 0;
+	}
+	.tab-label {
+		width: 100%;
+		padding: .5em 1em;
+		background: var(--bg-back);
+		cursor: pointer;
+	}
+	.tab-label:hover {
+		color: #fff;
+	}
+	.tab-label:active {
+		background: var(--bg-content);
+	}
+	.tabs > input[type="radio"]:focus + .tab-label {
+		z-index: 1;
+	}
+	.tabs > input[type="radio"]:checked + .tab-label {
+		background: var(--bg-content);
+	}
+	.tab-content {
+		background: var(--bg-content);
+		width: 100%;
+		display: none;
+	}
+	.tabs > input[type="radio"]:checked + .tab-label + .tab-content {
+		display: block;
+	}
+
+	@media (min-width: 600px) {
+		.tab-label {
+			width: auto;
+		}
+		.tab-content {
+			order: 9999;
+		}
+	}
+	/* FORMS */
+	button, input[type="button"], input[type="submit"] {
+		background: var(--bg-btn);
+		color: var(--tx-color);
+		border: none;
+		padding: .5em 1em;
+		cursor: pointer;
+	}
+	.btn-file {
+		display: inline-block;
+		background: var(--bg-btn);
+		color: var(--tx-color);
+		border: none;
+		padding: .5em 1em;
+		cursor: pointer;
+	}
+	.btn-file > input[type="file"] {
+		display: none;
+	}
+	button:hover, .btn-file:hover {
+		background: var(--bg-content);
+	}
+	button > i + span { margin-left: .5em; }
+	.btn-file i + span { margin-left: .5em; }
+	input:not([type=button]), input:not([type=submit]) {
+		background: var(--bg-btn);
+		color: var(--tx-color);
+		border: 1px solid var(--tx-content);
+		padding: .5em 1em;
+	}
+	input:not([type=button]):hover, input:not([type=submit]):hover {
+		background: var(--bg-content);
+	}
+	input:not([type=button]):focus, input:not([type=submit]):focus {
+		border-color: red;
+	}
+	/* FOOTER */
+	footer {
+		background: var(--bg-content);;
+		color: var(--tx-color);
+		padding: .5em 1em;
+		margin-top: 1em;
+		text-align: center;
+	}
+	footer a {
+		color: var(--tx-color);
+	}
+	/* MANAGER */
+	.file-manager { margin: 1em; min-height: calc(100vh - 13em); }
+	.file-block-title { font-size: 1.2em; }
+	.file-block-list { list-style: none; user-select: none; }
+	.file-block-list li { margin-bottom: .5em; }
+	.file-block-list li a { cursor: pointer; }
+	.file-block-list li i + span { margin-left: .5em; }
+</style>
+<link rel="stylesheet" type="text/css" href="/IrbisApps/Cms/assets/codemirror-5.56.0/lib/codemirror.css"/>
+<link rel="stylesheet" type="text/css" href="/IrbisApps/Cms/assets/codemirror-5.56.0/theme/monokai.css"/>
+<!-- <link rel="stylesheet" type="text/css" href="/IrbisApps/Cms/assets/codemirror-vscode-theme.css"/> -->
+<script src="/IrbisApps/Cms/assets/codemirror-5.56.0/lib/codemirror.js"></script>
+<script src="/IrbisApps/Cms/assets/codemirror-5.56.0/mode/xml/xml.js"></script>
+<script src="/IrbisApps/Cms/assets/codemirror-5.56.0/mode/javascript/javascript.js"></script>
+<script src="/IrbisApps/Cms/assets/codemirror-5.56.0/mode/css/css.js"></script>
+<script src="/IrbisApps/Cms/assets/codemirror-5.56.0/mode/htmlmixed/htmlmixed.js"></script>
+<script src="/IrbisApps/Cms/assets/codemirror-5.56.0/mode/twig/twig.js"></script>
+<script src="/IrbisApps/Cms/assets/codemirror-5.56.0/addon/mode/multiplex.js"></script>
+{% endblock assets %}
+
+{% block content %}
+<!-- Cabecera -->
+<section class="header">
+	<div class="header-left">
+		<span>Irbis CMS</span>
+	</div>
+
+	<div class="header-right">
+		<a is="@cms/auth-sign.js" href="#" event-click="changePassword">
+			<i class="fa fa-user fa-fw"></i>
+			<span>{{user}}</span>
+		</a>
+		<a href="/authorization/logout">
+			<i class="fa fa-sign-out fa-fw"></i>
+		</a>
+	</div>
+	<div style="clear:both"></div>
+</section>
+
+<!-- Contenido -->
+<section class="tabs">
+	<input name="tabs" type="radio" id="tab-1" checked="checked"/>
+	<label class="tab-label" for="tab-1"><i class="fa fa-folder-open"></i></label>
+	<div class="tab-content">
+		<div is="@cms/file-manager.js" class="file-manager">
+			<!-- manager actions -->
+			<div class="actions">
+				<button event-click="newFileAction" title="Nuevo archivo">
+					<i class="fa fa-file-o"></i>
+				</button>
+	
+				<label class="btn-file" title="Subir archivos">
+					<input event-change="uploadFileAction" name="files[]" type="file" multiple/>
+					<span><i class="fa fa-upload"></i></span>
+				</label>
+			</div>
+			<!-- manager files -->
+			{{ _self.filesBlock("Páginas", readFiles('*.html'), ["html"], "fa-file-code-o") }}
+			{{ _self.filesBlock("Hojas de estilo", readFiles('*.css'), ["css"], "fa-file-text-o") }}
+			{{ _self.filesBlock("Scripts", readFiles('*.js'), ["js"], "fa-file-archive-o") }}
+			{{ _self.filesBlock("Imágenes", readFiles('*.img'), ['jpg','jpeg','png','gif','svg'], "fa-file-image-o") }}
+			{{ _self.filesBlock("Fuentes", readFiles('*.font'), ['eot','ttf','woff','woff2','otf'], "fa-file-image-o") }}
+			{{ _self.filesBlock("Otros", readFiles('*')) }}
+
+		</div>
+	</div>
+</section>
+
+<!-- Pie de pagina -->
+<footer>
+	CMS by <a href="https://cavia.io">JorgeQuico</a> &copy;
+</footer>
+{% endblock content %}
