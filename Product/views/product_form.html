@@ -1,0 +1,9 @@
+{% from '@irbis/views/model_tools.html' import modelField %}
+
+<h3>Producto</h3>
+
+<div>
+    {{modelField(properties['name'], model)}}
+    {{modelField(properties['code'], model)}}
+    {{modelField(properties['category'], model)}}
+</div>
