@@ -15,7 +15,7 @@
 
 		<script type="importmap">
 {"imports": {
-{% for app in page_applications %}"@{{app.name}}/": "/{{app.namespace}}/components/"{{ loop.last ? '' : ',\n' }}{% endfor -%}
+{% for app in page_applications %}"@{{app.name}}/": "/{{app.key()}}/components/"{{ loop.last ? '' : ',\n' }}{% endfor -%}
 }}
         </script>
 		<style>

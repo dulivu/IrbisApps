@@ -140,7 +140,7 @@ class Controller extends iController {
 	}
 
 	private function routeToTemplate ($route) {
-		$routes = $this->state('routes');
+		$routes = $this->state('routes') ?: [];
 		$routes_keys = array_keys($routes);
 		$routes_values = array_values($routes);
 
