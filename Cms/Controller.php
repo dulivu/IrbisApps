@@ -74,7 +74,7 @@ class Controller extends iController {
 	 * @return string 			la ruta modificada
 	 */
 	public function asset ($file, $base='/IrbisApps/Cms') {
-		$extension = explode(".", basename($file));
+		$extension = explode(".", basename($file ?: ''));
 		$extension = end($extension);
 
 		switch ($extension) {
