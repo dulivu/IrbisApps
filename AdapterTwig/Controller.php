@@ -42,7 +42,7 @@ class Controller extends iController {
             // por cada controlador agregado registrar en twig una ruta
             // así se puede usar rutas de vista e: @twig/views/index.html
             $server->on('addController', function ($controller, $name) use ($loader) {
-                if (!$name) throw new \Exception("Twig: el controlador '{$controller->namespace}' requiere un nombre");
+                if (!$name) throw new \Exception("Twig: el controlador '{$controller->key()}' requiere un nombre");
                 if ($controller->views) $loader->addPath($controller->file("/{$controller->views}"), $name);
             });
             // cambiar las vistas de error por plantilla twig

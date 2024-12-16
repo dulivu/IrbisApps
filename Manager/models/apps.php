@@ -19,9 +19,9 @@ return [
     'make_install' => function () {
         $server = Server::getInstance();
         # TODO: se quito este metodo del servidor
-        $server->addApplication($this->namespace);
+        $server->addApplication($this->key());
 
-        $controller = $server->getController($this->namespace);
+        $controller = $server->getController($this->key());
         $controller->install();
         
         $this->installed = true;

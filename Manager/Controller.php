@@ -61,7 +61,7 @@ class Controller extends iController {
 		$apps = $this->availableApps();
 		
 		return array_filter($apps, function ($app) use ($list) {
-			return in_array($app->namespace, $list);
+			return in_array($app->key(), $list);
 		});
 	}
 
@@ -72,7 +72,7 @@ class Controller extends iController {
         # no se haya construido y agregado previamente 
         if (!$server->getController('IrbisApps/Manager')) {
             $server->on('addController', function ($controller) use ($server) {
-                if ($controller->namespace == 'IrbisApps/ModuleMap')
+                if ($controller->key() == 'IrbisApps/ModuleMap')
                     foreach ($controller->enabledApps() as $app)
                         $server->addController($app);
             });
@@ -89,7 +89,7 @@ class Controller extends iController {
 		if (!in_array($namespace, $assembled_apps)) {
 			$apps = $this->availableApps();
 			foreach ($apps as $app)
-				if ($app->namespace == $namespace)
+				if ($app->key() == $namespace)
 					return $app;
 		}
 		return false;
@@ -124,7 +124,7 @@ class Controller extends iController {
 				if ($app = $this->toAssembleApp($namespace)) {
 					$this->server->addController($app);
 					$app->assemble();
-					$assembled_apps[] = $app->namespace;
+					$assembled_apps[] = $app->key();
 				}
 			}
 			$this->state('assembled_apps', $assembled_apps);
