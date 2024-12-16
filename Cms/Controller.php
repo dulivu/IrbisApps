@@ -146,12 +146,12 @@ class Controller extends iController {
 
 		if (in_array("$route", $routes_values)) {
 			$key = array_search("$route", $routes_values);
-			return "@cms/../content/templates/{$routes_keys[$key]}.html";
+			return "@site/{$routes_keys[$key]}.html";
 		} else {
 			header("HTTP/1.0 404 Not Found");
 			$v404 = $this->file('/content/templates/not_found.html');
 			return file_exists($v404) ? 
-				'@cms/../content/templates/not_found.html' :
+				'@site/not_found.html' :
 				$this->server->view_404;
 		}
 	}
