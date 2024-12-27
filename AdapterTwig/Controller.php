@@ -11,14 +11,13 @@ use Twig\Extension\DebugExtension;
 /**
  * este modulo requiere twig instalado por composer
  * composer require "twig/twig:^3.0"
- * 
- * order: debe ser el primer módulo en ser llamado
  */
 class Controller extends iController {
     public $name 			= 'twig';
 	public $has_routes      = false;
 	public $installable 	= false;
 	public $depends 		= [];
+    public $views 			= false;
 
     public $loader;
     public $environment;
@@ -40,9 +39,9 @@ class Controller extends iController {
                 die($environment->render($view, $data));
             };
             // por cada controlador agregado registrar en twig una ruta
-            // así se puede usar rutas de vista e: @twig/views/index.html
+            // así se puede usar rutas de vista e: @twig/index.html
             $server->on('addController', function ($controller, $name) use ($loader) {
-                if (!$name) throw new \Exception("Twig: el controlador '{$controller->key()}' requiere un nombre");
+                if (!$name) throw new \Exception("Twig: el controlador '{$controller->key()}' requiere un nombre alias");
                 if ($controller->views) $loader->addPath($controller->file("/{$controller->views}"), $name);
             });
             // cambiar las vistas de error por plantilla twig

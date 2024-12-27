@@ -8,5 +8,5 @@ class Controller extends iController {
 	public $name 			= 'tools';
 	public $has_routes 		= false;
 	public $installable 	= false;
-	public $depends 		= [];
+	public $depends 		= ['IrbisApps/AdapterTwig'];
 }

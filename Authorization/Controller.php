@@ -1,6 +1,6 @@
 <?php
 
-namespace IrbisApps\Auth;
+namespace IrbisApps\Authorization;
 
 use Irbis\Controller as iController;
 use Irbis\Request;
@@ -13,7 +13,7 @@ class Controller extends iController {
     public $depends 		= ['IrbisApps/AdapterTwig'];
 
     public $session_user    = null;
-    public $auth_path       = '/';
+    public $authorized_path = '/';
 
     public function init () {
         session_start();
@@ -21,6 +21,19 @@ class Controller extends iController {
             $pass = password_hash('admin', PASSWORD_DEFAULT);
             $this->state('users.admin', $pass);
         }
+    }
+
+    public function register_user ($username, $password) {
+        if ($this->state('users.'.$username))
+            throw new \Exception("El usuario ya existe!");
+        $password = password_hash($password, PASSWORD_DEFAULT);
+        $this->state('users.'.$username, $password);
+    }
+
+    public function change_session_password ($password) {
+        $user = $this->session();
+        $password = password_hash($password, PASSWORD_DEFAULT);
+        $this->state($user, $password);
     }
 
     /**
@@ -42,19 +55,19 @@ class Controller extends iController {
             $username       = 'users.'.$request->input('username');
             $password       = $request->input('password');
             $redirect       = $request->query('redirect');
-            $pass           = $this->state($username);
+            $userpswd       = $this->state($username);
 
             # verificación de usuario
             # -----------------------------
-            if (!$pass)
+            if (!$userpswd)
                 $data['message'] = 'Usuario no encontrado!';
-            if (!password_verify($password, $pass))
+            if (!password_verify($password, $userpswd))
                 $data['message'] = 'Contraseña incorrecta!';
             # -----------------------------
 
             if (!($data['message'] ?? false)) {
                 $_SESSION['user'] = $username;
-                $redirect = $redirect ? base64_decode($redirect) : $this->auth_path;
+                $redirect = $redirect ? base64_decode($redirect) : $this->authorized_path;
                 redirect($redirect);
             }
         }
@@ -67,7 +80,7 @@ class Controller extends iController {
      */
     public function logout () {
 		session_destroy();
-		redirect($this->auth_path);
+		redirect($this->authorized_path);
     }
 
     public function session () {
@@ -81,15 +94,5 @@ class Controller extends iController {
             $this->session_user = $_SESSION['user'];
         }
         return $this->session_user;
-    }
-
-    /**
-     * @route /authorization/password
-     */
-    public function change_password ($request) {
-        $user = $this->session();
-        $password = $request->input('password');
-        $password = password_hash($password, PASSWORD_DEFAULT);
-        $this->state($user, $password);
     }
 }

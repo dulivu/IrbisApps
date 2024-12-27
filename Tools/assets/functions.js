@@ -110,6 +110,16 @@ HTMLElement.prototype.replaceChildren = function (newChildren) {
     return this;
 }
 
+HTMLElement.prototype.appendChildren = function (children) {
+    if (children instanceof HTMLCollection)
+        children = [...children];
+    if (children instanceof HTMLElement)
+        children = [children];
+
+    children.forEach((child) => this.append(child));
+    return this;
+}
+
 class JsonRequestError extends Error {
     constructor(jsonResponse) {        
         super(jsonResponse.error.message+", ");

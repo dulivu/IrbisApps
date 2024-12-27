@@ -7,7 +7,7 @@ use Irbis\Request;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 
-CONST BASE_HTML_TEMPLATE = 
+CONST HTML_TEMPLATE = 
 "<!DOCTYPE html>
 <html>
 	<head>
@@ -18,28 +18,29 @@ CONST BASE_HTML_TEMPLATE =
 		Coloque aqui el contenido de su página web...
 	</body>
 </html>";
-CONST BASE_SCRIPT_TEMPLATE = "console.log('Cavia CMS')";
-CONST BASE_CSS_TEMPLATE = "body { font-family: Arial; }";
+CONST SCRIPT_TEMPLATE = "console.log('Cavia CMS')";
+CONST CSS_TEMPLATE = "body { font-family: Arial; }";
 
 
 /**
  * Gestor de contenido flat - CMS / sin base de datos
  */
 class Controller extends iController {
-	public $name 			= 'cms'; # tambien usa el espacio site
+	public $name 			= 'cms'; 
+	# alias para plantillas	= site
 	public $has_routes 		= true;
 	public $installable 	= false;
 	public $depends 		= [
         'IrbisApps/AdapterTwig', 
         'IrbisApps/AdapterRest',
 		'IrbisApps/Tools',
-        'IrbisApps/Auth'
+        'IrbisApps/Authorization'
     ];
 
 	public $templates = [
-		"html" => BASE_HTML_TEMPLATE,
-		"js" => BASE_SCRIPT_TEMPLATE,
-		"css" => BASE_CSS_TEMPLATE
+		"html" => HTML_TEMPLATE,
+		"js" => SCRIPT_TEMPLATE,
+		"css" => CSS_TEMPLATE
 	];
 
 	public function init () {
@@ -47,17 +48,17 @@ class Controller extends iController {
 		$request = Request::getInstance();
 
 		# create content directory if not exists
-		if (!is_dir($this->file('/content'))) {
-			mkdir($this->file('/content'), 0777, true);
-			mkdir($this->file('/content/images'), 0777, true);
-			mkdir($this->file('/content/fonts'), 0777, true);
-			mkdir($this->file('/content/templates'), 0777, true);
-			mkdir($this->file('/content/styles'), 0777, true);
-			mkdir($this->file('/content/scripts'), 0777, true);
-			mkdir($this->file('/content/others'), 0777, true);
+		if (!is_dir($this->file('content'))) {
+			mkdir($this->file('content'), 0777, true);
+			mkdir($this->file('content/images'), 0777, true);
+			mkdir($this->file('content/fonts'), 0777, true);
+			mkdir($this->file('content/styles'), 0777, true);
+			mkdir($this->file('content/scripts'), 0777, true);
+			mkdir($this->file('content/others'), 0777, true);
+			mkdir($this->file('content/templates'), 0777, true);
 		}
 
-		$server->getController('auth')->auth_path = $request->base.'/cms';
+		$server->getController('auth')->authorized_path = $request->base.'/cms';
 		$server->getController('twig')->environment->addFilter(new TwigFilter('asset', [$this, 'asset']));
 		$server->getController('twig')->environment->addFunction(new TwigFunction('readFiles', [$this, 'readFiles']));
 		$server->getController('twig')->loader->addPath($this->file("/content/templates"), 'site');
@@ -65,9 +66,8 @@ class Controller extends iController {
 
 	/**
 	 * twig filter
-	 * Contruye una ruta en función de la ruta base agregandole un
-	 * directorio determinado por la extensión del archivo, si el
-	 * archivo es 'myfile.jpg' devuelve una ruta 'base/images/myfile.jpg'
+	 * Contruye una ruta para un archivo en función de su extensión, si el
+	 * archivo es 'myfile.jpg' devuelve una ruta 'contet/images/myfile.jpg'
 	 * 
 	 * @param string $file		nombre del archivo
 	 * @param string $base		directorio base para devolver
@@ -157,9 +157,9 @@ class Controller extends iController {
 	}
 
 	/**
-	 * @route /preview/(:any)
+	 * @route /cms/preview/(:any)
 	 * entregar directamente el nombre de la plantilla
-	 * ej: /preview/index.html
+	 * ej: /cms/preview/index.html
 	 */
 	public function webPreview ($request) {
 		$this->controller('auth')->session();
@@ -174,6 +174,16 @@ class Controller extends iController {
 				'@cms/../content/templates/not_found.html' :
 				$this->server->view_404;
 		}
+	}
+
+	/**
+	 * @route /cms/password
+	 */
+	public function changePasswrod ($request) {
+		$this->controller('auth')
+			->change_session_password(
+				$request->input('password')
+			);
 	}
 
 	/**

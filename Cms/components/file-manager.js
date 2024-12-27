@@ -184,7 +184,7 @@ export class FileManager extends IrbisElement {
     attachOthers (container, fileName) {
         container.replaceChildren([
             Element.create('button', {
-                innerHTML: '<i class="fa fa-close" title="Cancelar"></i>',
+                innerHTML: '<i class="fa fa-close" title="Cerrar"></i>',
                 events: { click: (ev) => this.closeEditorAction(ev) }
             }),
             Element.create('button', {
@@ -200,7 +200,7 @@ export class FileManager extends IrbisElement {
     attachImage (container, fileName) {
         container.replaceChildren([
             Element.create('button', {
-                innerHTML: '<i class="fa fa-close" title="Cancelar"></i>',
+                innerHTML: '<i class="fa fa-close" title="Cerrar"></i>',
                 events: { click: (ev) => this.closeEditorAction(ev) }
             }),
             Element.create('button', {
@@ -222,7 +222,7 @@ export class FileManager extends IrbisElement {
 
     async attachCodeEditor (container, fileName) {
         try {
-            let fileContent = await fetch.get('/cms/file?name='+fileName);
+            let fileContent = await fetch.get('/cms/file?name='+fileName, {redirect: 'error'});
 
             // se agregan los comandos
             container.replaceChildren([
@@ -231,7 +231,7 @@ export class FileManager extends IrbisElement {
                     events: { click: (ev) => this.saveEditorAction(ev) }
                 }),
                 Element.create('button', {
-                    innerHTML: '<i class="fa fa-close" title="Cancelar"></i>',
+                    innerHTML: '<i class="fa fa-close" title="Cerrar"></i>',
                     events: { click: (ev) => this.closeEditorAction(ev) }
                 }),
                 Element.create('button', {
@@ -252,6 +252,14 @@ export class FileManager extends IrbisElement {
                         }
                     })
                 );
+                container.append(Element.create('a', {
+                    classList: ['button'],
+                    innerHTML: '<i class="fa fa-eye" title="Vista previa"></i>',
+                    attributes: {
+                        href: '/cms/preview/'+fileName,
+                        target: '_blank'
+                    }
+                }));
             }
 
             // se agrega el editor de codigo

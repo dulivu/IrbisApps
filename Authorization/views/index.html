@@ -12,6 +12,7 @@
 <body>
     <h2>Mi sitio web</h2>
     {% if user %}
+        <p>Hola {{user}}</p>
         <a href="/authorization/logout">Cerrar sesión</a>
     {% else %}
         <a href="/authorization/login">Iniciar sesión</a>

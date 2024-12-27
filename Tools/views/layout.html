@@ -6,48 +6,52 @@
 #}
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-        <link rel="stylesheet" type="text/css" href="/IrbisApps/Tools/assets/normalize.css"/>
-		<link rel="stylesheet" type="text/css" href="/IrbisApps/Tools/assets/font-awesome.min.css"/>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-		<script type="importmap">
+	<link rel="stylesheet" type="text/css" href="/IrbisApps/Tools/assets/normalize.css"/>
+	<link rel="stylesheet" type="text/css" href="/IrbisApps/Tools/assets/font-awesome.min.css"/>
+
+	<script type="importmap">
 {"imports": {
 {% for app in page_applications %}"@{{app.name}}/": "/{{app.key()}}/components/"{{ loop.last ? '' : ',\n' }}{% endfor -%}
 }}
-        </script>
-		<style>
-			input:focus { outline: none; }
-		</style>
-		<script type="text/javascript">
-			window.debug_mode = parseInt("{{DEBUG_MODE}}");
-		</script>
-		
-		<script src="/IrbisApps/Tools/assets/functions.js" type="text/javascript"></script>
-        
-		<title>{{ page_title ?: 'Irbis' }}</title>
-        {% block assets %}{% endblock %}
-	</head>
+	</script>
+	<style>
+		input:focus { outline: none; }
+	</style>
+	<script type="text/javascript">
+		window.debug_mode = parseInt("{{DEBUG_MODE}}");
+	</script>
+	<script src="/IrbisApps/Tools/assets/functions.js" type="text/javascript"></script>
+	<title>{{ page_title ?: 'Irbis' }}</title>
+	{% block assets %}{% endblock %}
+</head>
 
-	<body>
-		{% block content %}{% endblock %}
-		<script defer>
-			(function () {
-				document.irbisElements = {};
-				document.irbisComponents = {};
-				document.querySelectorAll('[is]').forEach(function (el) {
-					let component = el.getAttribute('is');
-					import(component).then(function (module) {
-						let instance = new module[Object.keys(module)[0]](el);
-						if (el.id in document.irbisElements)
-							throw new Error(`Element with id '${el.id}' already exists`);
-						if (el.id)
-							document.irbisElements[el.id] = instance;
-					});
+<body>
+	{% block content %}{% endblock %}
+	<script defer>
+		(function () {
+			document.irbisElements = {};
+			document.irbisComponents = {};
+			document.querySelectorAll('[is]').forEach(function (el) {
+				let component = el.getAttribute('is');
+				import(component).then(function (module) {
+					// el, es el elemento que se comporta como un componente
+					// module, termina siendo la clase importada
+					// creamos una instancia de dicha clase con el elemento
+					// así el componente (vista) se une con el componente (código)
+					let instance = new module[Object.keys(module)[0]](el);
+					if (el.id in document.irbisElements)
+						throw new Error(`Element with id '${el.id}' already exists`);
+					if (el.id)
+						document.irbisElements[el.id] = instance;
 				});
-			})();
-		</script>
-	</body>
+			});
+		})();
+	</script>
+</body>
+
 </html>
