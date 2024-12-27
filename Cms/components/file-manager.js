@@ -253,7 +253,7 @@ export class FileManager extends IrbisElement {
                     })
                 );
                 container.append(Element.create('a', {
-                    classList: ['button'],
+                    classList: ['btn-file'],
                     innerHTML: '<i class="fa fa-eye" title="Vista previa"></i>',
                     attributes: {
                         href: '/cms/preview/'+fileName,
