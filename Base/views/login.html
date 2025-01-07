@@ -1,9 +1,14 @@
-{% extends "@irbis/layout.html" %}
+{% extends "@tools/layout.html" %}
 
 {% block title %}<title>Iniciar sesión</title>{% endblock %}
 
+{% block assets %}
+<link rel="stylesheet" href="/IrbisApps/Base/assets/7.css"/>
+<link rel="stylesheet" href="/IrbisApps/Base/assets/irbis.css"/>
+{% endblock %}
+
 {% block content %}
-<div class="window" style="left:50%; transform: translate(-50%, -50%); top: 200px; max-width: 320px">
+<div class="window" style="left:50%; transform: translate(-50%, -50%); top: 21em; max-width: 26em;">
 	<div class="title-bar">
 		<div class="title-bar-text">Inicio de sesión</div>
 	</div>
@@ -20,10 +25,8 @@
 		</div>
 
 		<div class="field-row">
-			<button class="button" type="submit">Enviar</button>
-			{% if (status == "error") %}
+			<button class="button default" type="submit">Enviar</button>
 			<span>{{message}}</span>
-			{% endif %}
 		</div>
 	</form>
 </div>

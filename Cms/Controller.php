@@ -2,6 +2,7 @@
 namespace IrbisApps\Cms;
 
 use Irbis\Controller as iController;
+use Irbis\RecordSet;
 use Irbis\Server;
 use Irbis\Request;
 use Twig\TwigFilter;
@@ -34,7 +35,7 @@ class Controller extends iController {
         'IrbisApps/AdapterTwig', 
         'IrbisApps/AdapterRest',
 		'IrbisApps/Tools',
-        'IrbisApps/Authorization'
+        'IrbisApps/Base'
     ];
 
 	public $templates = [
@@ -58,7 +59,7 @@ class Controller extends iController {
 			mkdir($this->file('content/templates'), 0777, true);
 		}
 
-		$server->getController('auth')->authorized_path = $request->base.'/cms';
+		$server->getController('irbis')->logged_path = $request->base.'/cms';
 		$server->getController('twig')->environment->addFilter(new TwigFilter('asset', [$this, 'asset']));
 		$server->getController('twig')->environment->addFunction(new TwigFunction('readFiles', [$this, 'readFiles']));
 		$server->getController('twig')->loader->addPath($this->file("/content/templates"), 'site');
@@ -162,7 +163,7 @@ class Controller extends iController {
 	 * ej: /cms/preview/index.html
 	 */
 	public function webPreview ($request) {
-		$this->controller('auth')->session();
+		$this->controller('irbis')->session();
 		$fileName = $request->path(0);
 		$filePath = $this->file("/content/templates/{$fileName}");
 		if (file_exists($filePath)) {
@@ -180,17 +181,15 @@ class Controller extends iController {
 	 * @route /cms/password
 	 */
 	public function changePasswrod ($request) {
-		$this->controller('auth')
-			->change_session_password(
-				$request->input('password')
-			);
+		$user = $this->controller('irbis')->session();
+		$user->password = $request->input('password');
 	}
 
 	/**
 	 * @route /cms
 	 */
 	public function manageCms ($request) {
-		$user = $this->controller('auth')->session();
+		$user = $this->controller('irbis')->session();
 
 		# gestionar la ruta del archivo
 		if ($request->query('routefor')) {
@@ -210,10 +209,6 @@ class Controller extends iController {
         
         return ['@cms/index.html', [
 			'page_title' => 'Irbis CMS',
-			'page_applications' => [
-				$this->controller('IrbisApps/Cms'),
-			],
-			'user' => explode('.', $user)[1]
         ]];
 	}
 
@@ -221,7 +216,7 @@ class Controller extends iController {
 	 * @route /cms/file
 	 */
 	public function manageFile ($request) {
-		$this->controller('auth')->session();
+		$this->controller('irbis')->session();
 		$file_base = $this->file();
 		$file_name = $request->query('name');
 		$file_path = $this->asset($file_name, $file_base);

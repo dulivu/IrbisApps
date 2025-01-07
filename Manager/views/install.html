@@ -1,4 +1,4 @@
-{% extends "@irbis/views/layout.html" %}
+{% extends "@irbis/layout.html" %}
 
 {% block title %}<title>Instalar</title>{% endblock %}
 
@@ -28,8 +28,8 @@
 		<div class="has-scrollbar" style="max-width: 350px; overflow-y: auto;">
 		{% for app in applications %}
 		<div class="field-row">
-			<input type="checkbox" name="apps[]" value="{{ app.namespace }}" id="{{ app.namespace }}" {{ app.isAssembled() ? 'checked' }}/>
-			<label for="{{ app.namespace }}">{{ app.namespace }}</label>
+			<input type="checkbox" name="apps[]" value="{{ app.key() }}" id="{{ app.key() }}" {{ app.isAssembled() ? 'checked' }}/>
+			<label for="{{ app.key() }}">{{ app.key() }}</label>
 		</div>
 		{% endfor %}
 		</div>

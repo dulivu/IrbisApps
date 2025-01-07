@@ -111,9 +111,9 @@ class Controller extends iController {
 	 * @route /irbis/install
 	 */
 	public function install ($request) {
-		$this->session();
+		//$this->session();
 
-		if ($request->isMethod('POST')) {
+		if ($request->is('POST')) {
 			if (!$this->state('installed'))
 				$this->assemble();
 			
@@ -131,7 +131,7 @@ class Controller extends iController {
 			redirect($this->desktop_path);
 		}
 		
-		return ["@irbis/views/install.html", [
+		return ["@irbis/install.html", [
 			"desktop_path" => $this->desktop_path,
 			"irbis_installed" => !!$this->state('installed'),
 			"applications" =>  $this->availableApps(),
@@ -164,7 +164,7 @@ class Controller extends iController {
 	 */
 	public function desktop ($request) {
 		$user = $this->session();
-		return ["@irbis/views/desktop.html", [
+		return ["@irbis/desktop.html", [
 			'user' => $user,
 			'apps' => array_merge([$this], $this->enabledApps()),
 			'models' => $this->availableModels()
@@ -214,7 +214,7 @@ class Controller extends iController {
 
 		$model 		= new RecordSet($model);
 
-		if ($request->isMethod('POST')) {
+		if ($request->is('POST')) {
 			if ($access[1] == 0) {
 				header("HTTP/1.1 401 Unauthorized");
 				return [];
@@ -225,7 +225,7 @@ class Controller extends iController {
 			redirect("/irbis/model/{$model->__name}/update/{$model[0]->id}");
 		}
 
-		return ["@irbis/views/model_form.html", [
+		return ["@irbis/model_form.html", [
 			'user' => 		$user,
 			'apps' => 		array_merge([$this], $this->enabledApps()),
 			'model' => 		$model,
@@ -251,7 +251,7 @@ class Controller extends iController {
 		
 		$model->select($modelID);
 
-		if ($request->isMethod('POST')) {
+		if ($request->is('POST')) {
 			if ($access[2] == 0) {
 				header("HTTP/1.1 401 Unauthorized");
 				return [];
@@ -261,7 +261,7 @@ class Controller extends iController {
 			$model->update($values);
 		}
 
-		return ["@irbis/views/model_form.html", [
+		return ["@irbis/model_form.html", [
 			'user' => $user,
 			'apps' => array_merge([$this], $this->enabledApps()),
 			'model' => $model,
@@ -317,7 +317,7 @@ class Controller extends iController {
 	 * redirigirá a esta ruta para que el usuario inicie sesión
 	 */
 	public function login ($request) {
-		if ($request->isMethod('POST')) {
+		if ($request->is('POST')) {
 			$username = $request->input('username');
 			$userpass = $request->input('userpass');
 			$redirect = $request->query('redirect');
@@ -337,7 +337,7 @@ class Controller extends iController {
 			}
 		}
 
-		return ['@irbis/views/login.html', $data ?? []];
+		return ['@irbis/login.html', $data ?? []];
 	}
 
 	/**

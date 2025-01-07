@@ -25,7 +25,7 @@ class Controller extends iController {
 			header("Access-Control-Allow-Origin: *");
 			header("Content-Type: application/json; charset=UTF-8");
 
-			$server->on('response', function ($request, $response) {
+			$server->on('response', function ($response) {
 				$response->view = False;
 				// esta sección transforma el trace del error para no generar error
 				// al convertirlo en un json por recursividad
