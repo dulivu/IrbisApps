@@ -3,6 +3,7 @@ namespace IrbisApps\Cms;
 
 use Irbis\Controller as iController;
 use Irbis\RecordSet;
+use Irbis\Exceptions\HttpException;
 use Irbis\Server;
 use Irbis\Request;
 use Twig\TwigFilter;
@@ -27,16 +28,14 @@ CONST CSS_TEMPLATE = "body { font-family: Arial; }";
  * Gestor de contenido flat - CMS / sin base de datos
  */
 class Controller extends iController {
-	public $name 			= 'cms'; 
 	# alias para plantillas	= site
-	public $has_routes 		= true;
-	public $installable 	= false;
-	public $depends 		= [
-        'IrbisApps/AdapterTwig', 
-        'IrbisApps/AdapterRest',
-		'IrbisApps/Tools',
-        'IrbisApps/Base'
-    ];
+	public static $name			= 'cms';
+	public static $use_routes	= true;
+	public static $depends		= ['IrbisApps/Base'];
+	public static $label 		= 'Cms';
+	public static $version 		= '1.0';
+	public static $description 	= 'Gestor de contenido para sitios web';
+	public static $author 		= 'jorge.quico@cavia.io';
 
 	public $templates = [
 		"html" => HTML_TEMPLATE,
@@ -48,21 +47,34 @@ class Controller extends iController {
 		$server = Server::getInstance();
 		$request = Request::getInstance();
 
-		# create content directory if not exists
-		if (!is_dir($this->file('content'))) {
-			mkdir($this->file('content'), 0777, true);
-			mkdir($this->file('content/images'), 0777, true);
-			mkdir($this->file('content/fonts'), 0777, true);
-			mkdir($this->file('content/styles'), 0777, true);
-			mkdir($this->file('content/scripts'), 0777, true);
-			mkdir($this->file('content/others'), 0777, true);
-			mkdir($this->file('content/templates'), 0777, true);
+		# crear el directorio de contenido de no existir
+		if (!is_dir($this->filePath('content'))) {
+			mkdir($this->filePath('content'), 0777, true);
+			mkdir($this->filePath('content/images'), 0777, true);
+			mkdir($this->filePath('content/fonts'), 0777, true);
+			mkdir($this->filePath('content/styles'), 0777, true);
+			mkdir($this->filePath('content/scripts'), 0777, true);
+			mkdir($this->filePath('content/others'), 0777, true);
+			mkdir($this->filePath('content/templates'), 0777, true);
 		}
 
-		$server->getController('irbis')->logged_path = $request->base.'/cms';
-		$server->getController('twig')->environment->addFilter(new TwigFilter('asset', [$this, 'asset']));
-		$server->getController('twig')->environment->addFunction(new TwigFunction('readFiles', [$this, 'readFiles']));
-		$server->getController('twig')->loader->addPath($this->file("/content/templates"), 'site');
+		# registrar funciones y alias en twig
+		$irbis_controller = $server->getController('irbis');
+		$irbis_controller->environment->addFilter(new TwigFilter('asset', [$this, 'asset']));
+		$irbis_controller->environment->addFunction(new TwigFunction('readFiles', [$this, 'readFiles']));
+		$irbis_controller->loader->addPath($this->filePath("/content/templates"), 'site');
+	}
+
+	public function assemble ($only_binds=false) {
+		$routes = new RecordSet('routes');
+		$routes->bind();
+
+		if (!$only_binds) {
+			$routes->insert([
+				'name' => '/',
+				'file' => 'index.html'
+			]);
+		}
 	}
 
 	/**
@@ -116,73 +128,27 @@ class Controller extends iController {
         
 		return array_map(function ($i) {
 			return basename($i);
-		}, $this->file($glob));
+		}, $this->filePath($glob));
 	}
 
 	/**
 	 * @route /
-	 */
-	public function webIndex ($request) {
-		$template = $this->routeToTemplate('/');
-		return [$template, [
-			'request' => $request
-		]];
-	}
-
-	/**
 	 * @route /site/(:all)
 	 */
 	public function webSite ($request) {
-		$route = $request->path(0);
-		$template = $this->routeToTemplate("/$route");
-		return [$template, [
+		$path = $request->path(0);
+		$path = $path ? "/$path" : "/";
+		$tmpl = null;
+
+		$route = new RecordSet("routes");
+		$route->select(['name' => $path]);
+		if ($route->count()!== 1)
+			throw new HttpException("Not Found", 404);
+		
+		$tmpl = "@site/{$route[0]->file}";
+		return [$tmpl, [
 			'request' => $request
 		]];
-	}
-
-	private function routeToTemplate ($route) {
-		$routes = $this->state('routes') ?: [];
-		$routes_keys = array_keys($routes);
-		$routes_values = array_values($routes);
-
-		if (in_array("$route", $routes_values)) {
-			$key = array_search("$route", $routes_values);
-			return "@site/{$routes_keys[$key]}.html";
-		} else {
-			header("HTTP/1.0 404 Not Found");
-			$v404 = $this->file('/content/templates/not_found.html');
-			return file_exists($v404) ? 
-				'@site/not_found.html' :
-				$this->server->view_404;
-		}
-	}
-
-	/**
-	 * @route /cms/preview/(:any)
-	 * entregar directamente el nombre de la plantilla
-	 * ej: /cms/preview/index.html
-	 */
-	public function webPreview ($request) {
-		$this->controller('irbis')->session();
-		$fileName = $request->path(0);
-		$filePath = $this->file("/content/templates/{$fileName}");
-		if (file_exists($filePath)) {
-			return "@cms/../content/templates/{$fileName}";
-		} else {
-			header("HTTP/1.0 404 Not Found");
-			$v404 = $this->file('/content/templates/not_found.html');
-			return file_exists($v404) ? 
-				'@cms/../content/templates/not_found.html' :
-				$this->server->view_404;
-		}
-	}
-
-	/**
-	 * @route /cms/password
-	 */
-	public function changePasswrod ($request) {
-		$user = $this->controller('irbis')->session();
-		$user->password = $request->input('password');
 	}
 
 	/**
@@ -207,7 +173,7 @@ class Controller extends iController {
 			}
 		}
         
-        return ['@cms/index.html', [
+        return ['@cms/cms.html', [
 			'page_title' => 'Irbis CMS',
         ]];
 	}
@@ -217,7 +183,7 @@ class Controller extends iController {
 	 */
 	public function manageFile ($request) {
 		$this->controller('irbis')->session();
-		$file_base = $this->file();
+		$file_base = $this->filePath();
 		$file_name = $request->query('name');
 		$file_path = $this->asset($file_name, $file_base);
 

@@ -1,33 +1,36 @@
-{% extends "@tools/layout.html" %}
-
-{% block title %}<title>Iniciar sesión</title>{% endblock %}
+{% extends "@irbis/layouts/base.html" %}
 
 {% block assets %}
-<link rel="stylesheet" href="/IrbisApps/Base/assets/7.css"/>
-<link rel="stylesheet" href="/IrbisApps/Base/assets/irbis.css"/>
+<link rel="stylesheet" href="https://unpkg.com/7.css" type="text/css"/>
+<link rel="stylesheet" href="/IrbisApps/Base/assets/w7.css" type="text/css"/>
+<style>
+	.login {
+		position: absolute;
+		max-width: 25em;
+		transform: translate(-50%, -50%); 
+		top: 21em;
+		left: 50%;
+	}
+</style>
 {% endblock %}
 
-{% block content %}
-<div class="window" style="left:50%; transform: translate(-50%, -50%); top: 21em; max-width: 26em;">
-	<div class="title-bar">
-		<div class="title-bar-text">Inicio de sesión</div>
-	</div>
+{% block site %}
+	<form class="login" method="POST">
+		<fieldset>
+			<legend>Iniciar sesión</legend>
+			<label class="field-row">
+				<span class="label">Usuario:</span>
+				<input name="username" type="text" autofocus autocomplete="off" />
+			</label>
 
-	<form class="window-body has-space" method="POST">
-		<div class="field-row">
-			<label for="username">Usuario:</label>
-			<input id="username" name="username" type="text" autofocus autocomplete="off" />
-		</div>
+			<label class="field-row">
+				<span class="label">Contraseña:</span>
+				<input name="userpass" type="password"/>
+			</label>
 
-		<div class="field-row">
-			<label for="userpass">Contraseña:</label>
-			<input id="userpass" name="userpass" type="password"/>
-		</div>
-
-		<div class="field-row">
-			<button class="button default" type="submit">Enviar</button>
-			<span>{{message}}</span>
-		</div>
+			<div class="field-row">
+				<button class="button default" type="submit">Enviar</button>
+			</div>
+		</fieldset>
 	</form>
-</div>
 {% endblock %}

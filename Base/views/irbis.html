@@ -1,0 +1,50 @@
+{% extends "@irbis/layouts/app.html" %}
+
+{% block menu %}
+<li role="menuitem" tabindex="0" event-click="actionUpdateApps">
+    Actualizar lista de aplicaciones
+</li>
+{% endblock menu %}
+
+{% block content %}
+<table style="width: 100%;">
+    <thead>
+        <tr>
+            <th>Aplicación</th>
+            <th>Paquete</th>
+            <th>Autor</th>
+            <th>Versión</th>
+            <th>Descripción</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in set %}
+        <tr is="@irbis/list-item.js" record-id="{{ record.id }}" record-name="{{ attribute(record, '@name') }}">
+            <td>{{ record.name }}</td>
+            <td>{{ record.package }}</td>
+            <td>{{ record.author }}</td>
+            <td>{{ record.version }}</td>
+            <td class="wrap">{{ record.description }}</td>
+
+            <td>
+            {% if record.active %}
+                <a event-click="actionCall:activeToogle" style="color: red;">Desactivar</a>
+            {% else %}
+                <a event-click="actionCall:activeToogle">Activar</a>
+            {% endif %}
+            </td>
+
+            <td>
+            {% if record.active %}
+                <a event-click="actionCall:actionUpdate">Actualizar</a>
+            {% else %}
+                <a event-click="actionCall:actionDelete">Eliminar</a>
+            {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

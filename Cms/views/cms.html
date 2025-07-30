@@ -1,0 +1,59 @@
+{% extends "@irbis/layouts/app.html" %}
+{% from '@cms/macros.html' import field_set %}
+
+{% block assets %}
+{{parent()}}
+<link rel="stylesheet" href="/IrbisApps/Base/assets/codemirror-5.56.0/lib/codemirror.css"/>
+<!-- <link rel="stylesheet" href="/IrbisApps/Base/assets/codemirror-5.56.0/theme/monokai.css"/> -->
+<!-- <link rel="stylesheet" href="/IrbisApps/Base/assets/codemirror-vscode-theme.css"/> -->
+<script src="/IrbisApps/Base/assets/codemirror-5.56.0/lib/codemirror.js"></script>
+<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/xml/xml.js"></script>
+<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/javascript/javascript.js"></script>
+<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/css/css.js"></script>
+<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/htmlmixed/htmlmixed.js"></script>
+<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/twig/twig.js"></script>
+<script src="/IrbisApps/Base/assets/codemirror-5.56.0/addon/mode/multiplex.js"></script>
+{% endblock assets %}
+
+{% block menu %}
+<li role="menuitem" tabindex="0">
+	Archivo
+	<ul role="menu">
+		<li role="menuitem">
+			<i class="fa fa-file-o"></i>
+			<a event-click="doAction:newFileAction">Nuevo</a>
+		</li>
+
+		<li role="menuitem">
+			<i class="fa fa-upload"></i>
+			<a>
+				<label>Subir
+				<input class="hidden" event-change="doAction:uploadFileAction" name="files[]" type="file" multiple="">
+				</label>
+			</a>
+		</li>
+
+		<li role="menuitem" aria-disabled="true">
+			<i class="fa fa-save"></i>
+			<a event-click="doAction:saveFileAction">Guardar</a>
+		</li>
+	</ul>
+</li>
+{% endblock menu %}
+
+{% block content %}
+<section style="padding: 1em;">
+	<menu role="tablist" aria-label="Tabs Template">
+		<button role="tab" aria-controls="file-manager" aria-selected="true">Inicio</button>
+	</menu>
+	<article role="tabpanel" id="file-manager" is="@cms/file-manager.js" main-component>
+		<!-- manager files -->
+		{{ field_set("Páginas", readFiles('*.html'), ["html"], "fa-file-code-o") }}
+		{{ field_set("Hojas de estilo", readFiles('*.css'), ["css"], "fa-file-text-o") }}
+		{{ field_set("Scripts", readFiles('*.js'), ["js"], "fa-file-archive-o") }}
+		{{ field_set("Imágenes", readFiles('*.img'), ['jpg','jpeg','png','gif','svg'], "fa-file-image-o") }}
+		{{ field_set("Fuentes", readFiles('*.font'), ['eot','ttf','woff','woff2','otf'], "fa-file-powerpoint-o") }}
+		{{ field_set("Otros", readFiles('*')) }}
+	</article>
+</section>
+{% endblock content %}

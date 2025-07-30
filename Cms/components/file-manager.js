@@ -14,55 +14,24 @@ export class FileManager extends IrbisElement {
         js: 'javascript'
     }
     tabsElement = null;
+    tabsLabels = null;
 
     constructor (element) {
         super(element);
-        this.tabsElement = this.element.parentElement.parentElement;
+        this.tabsElement = this.element.parentElement;
+        this.tabsLabels = this.tabsElement.querySelector('menu');
+        this.tabsLabels.addEventListener('click', (ev) => {
+            if (ev.target.tagName.toLowerCase() == 'button')
+                this.tabChange(ev.target);
+        });
     }
+
+    /*** ACTIONS ***/
 
     openFileAction (ev) {
         let anchor = ev.currentTarget
         let fileName = anchor.textContent.trim();
         this.openFile(fileName);
-    }
-
-    attachFileName (fileName) {
-        let self = this;
-        let blocks = [...this.element.children].filter((el) => el.tagName.toLowerCase() == 'ul');
-        blocks.some(function (block) {
-            let faIcon = block.getAttribute('data-file-icon');
-            let validExtensions = block.getAttribute('data-valid-extensions').split(' ');
-			if (validExtensions.includes(fileName.getExtension()) || validExtensions[0] == "") {
-                block.append(Element.create('li', {
-                    children: [
-                        Element.create('a', {
-                            events: {click: (ev) => self.openFileAction(ev)},
-                            children: [
-                                Element.create('i', {classList: ['fa', faIcon]}),
-                                Element.create('span', {textContent: fileName})
-                            ]
-                        })
-                    ]
-                }));
-
-                return true;
-			}
-		});
-    }
-
-    /**
-     * WARNING: este método envia una petición de
-     * eliminación del archivo al servidor
-     */
-    detachFileName (fileName) {
-        let files = [...this.element.querySelectorAll('li')];
-        files.some(function (file) {
-            if (file.textContent.trim() == fileName) {
-                fetch.delete('/cms/file?name='+fileName)
-                    .then(() => { file.remove(); });
-                return true;
-            }
-        });
     }
 
     newFileAction (ev) {
@@ -91,34 +60,182 @@ export class FileManager extends IrbisElement {
         }
     }
 
+    saveEditorAction (ev) {
+        let tabInfo = this.tabInfo(ev.currentTarget.parentElement.parentElement);
+        let editor = tabInfo['content'].querySelector('textarea').CodeMirror;
+        let fileContent = editor.getValue();
+        fetch.put('/cms/file?name='+tabInfo['name'], {
+            body: fileContent
+        }).then(() => alert('Archivo actualizado'));
+
+        // si una ruta existe esta se guarda
+        let routeInput = tabInfo['content'].querySelector('input.file-route');
+        if (routeInput) {
+            if (routeInput.vale && !routeInput.value.startsWith('/'))
+                routeInput.value = '/'+routeInput.value;
+            fetch.post('/cms?routefor='+tabInfo['name'], {
+                body: { fileRoute: routeInput.value }
+            });
+        }
+    }
+
+    closeEditorAction (ev) {
+        let tabInfo = this.tabInfo(ev.currentTarget.parentElement.parentElement);
+        if (this.validCreateExtensions.includes(tabInfo['name'].getExtension()))
+            this.detachCodeEditor(tabInfo['content']);
+        this.tabRemove(tabInfo['name']);
+        return tabInfo['name'];
+    }
+
+    deleteEditorAction (ev) {
+        if (!confirm('¿Está seguro de eliminar este archivo?')) return;
+        let fileName = this.closeEditorAction(ev);
+        this.detachFileName(fileName);
+    }
+
     /*** TAB ACTIONS ***/
 
-    tabExists (fileName) {
-        let labels = [...this.tabsElement.children]
-            .filter((el) => el.tagName.toLowerCase() == 'label');
+    tabChange (tabLabel) {
+        let tabActive = this.tabsLabels.querySelector('[aria-selected=true]');
+        if (tabLabel === tabActive) return;
+        let tabIndex = Array.from(this.tabsLabels.children).indexOf(tabLabel);
+        let contentActive = this.tabsElement.children[tabIndex+1];
+        let contentLabel = this.tabsElement.querySelector('article:not([hidden])');
+
+        tabLabel.setAttribute('aria-selected', true);
+        tabActive.removeAttribute('aria-selected');
+
+        contentLabel.setAttribute('hidden', true);
+        contentActive.removeAttribute('hidden');
+    }
+
+    tabExists (tabLabel) {
+        let labels = [...this.tabsLabels.children];
         let exists = false;
         labels.some((label) => {
-            if (label.textContent.trim() == fileName) {
-                let input = label.previousElementSibling;
-                return exists = input.checked = true;
+            if (label.textContent.trim() == tabLabel) {
+                this.tabChange(label);
+                return true;
             }
         });
         return exists;
+    }
+
+    tabAdd (index, tabText) {
+        let tabIndex = 'tab-'+index;
+        let tabLabel = Element.create('button', {
+            attributes: {
+                'role': 'tab', 
+                'aria-controls': tabIndex
+            },
+            textContent: tabText
+        });
+        let tabContent = Element.create('article', {
+            attributes: {
+                'role': 'tabpanel', 
+                'hidden': true,
+                'id': tabIndex
+            },
+            innerHTML: '<p>cargando ...</p>'
+        });
+
+        this.tabsLabels.append(tabLabel);
+        this.tabsElement.append(tabContent);
+        return [tabLabel, tabContent];
+    }
+
+    tabRemove (tabLabel) {
+        let self = this;
+        let labels = [...this.tabsLabels.children];
+        labels.some(function (label) {
+            if (label.textContent.trim() == tabLabel) {
+                let index = Array.from(self.tabsLabels.children).indexOf(label);
+                let content = Array.from(self.tabsElement.children)[index+1];
+                if (label.getAttribute('aria-selected') === 'true')
+                    self.tabChange(labels[0]);
+
+                content.remove();
+                label.remove();
+                return true;
+            }
+        });
+    }
+
+    tabInfo (element) {
+        if (element.tagName.toLowerCase() == 'button') {
+            let tabIndex = Array.from(this.tabsLabels.children).indexOf(element) + 1;
+            return {
+                name: element.textContent.trim(),
+                label: element,
+                content: this.tabsElement.children[tabIndex]
+            }
+        } else if (element.tagName.toLowerCase() == 'article') {
+            let tabIndex = Array.from(this.tabsElement.children).indexOf(element) - 1;
+            let tabLabel = this.tabsLabels.children[tabIndex];
+            return {
+                name: tabLabel.textContent.trim(),
+                label: tabLabel,
+                content: element
+            }
+        }
+        return {};
+    }
+
+    /*** INTERNALS ***/
+
+    attachFileName (fileName) {
+        let self = this;
+        let blocks = [...this.element.querySelectorAll('fieldset > ul')];
+        blocks.some(function (block) {
+            let faIcon = block.getAttribute('data-file-icon');
+            let validExtensions = block.getAttribute('data-valid-extensions').split(' ');
+			if (validExtensions.includes(fileName.getExtension()) || validExtensions[0] == "") {
+                block.append(Element.create('li', {
+                    children: [
+                        Element.create('a', {
+                            events: {click: (ev) => self.openFileAction(ev)},
+                            children: [
+                                Element.create('i', {classList: ['fa-li', 'fa', faIcon]}),
+                                Element.create('span', {textContent: fileName})
+                            ]
+                        })
+                    ]
+                }));
+
+                return true;
+			}
+		});
+    }
+
+    /**
+     * WARNING: este método envia una petición de
+     * eliminación del archivo al servidor
+     */
+    detachFileName (fileName) {
+        let files = [...this.element.querySelectorAll('li')];
+        files.some(function (file) {
+            if (file.textContent.trim() == fileName) {
+                fetch.delete('/cms/file?name='+fileName)
+                    .then(() => { file.remove(); });
+                return true;
+            }
+        });
     }
 
     openFile (fileName) {
         if (this.tabExists(fileName)) return;
 
         // obtener el último indice de los tabs
-        let inputs = [...this.tabsElement.children]
-            .filter((el) => el.tagName.toLowerCase() == 'input');
-        let index = parseInt(inputs.pop().getAttribute('id').split('-')[1]) + 1;
-        let tabContent = this.tabAdd(index, fileName);
+        let last = [...this.tabsLabels.children].pop();
+        let index = this.tabsLabels.children.length;
+        let [label, content] = this.tabAdd(index, fileName);
+
+        this.tabChange(label);
 
         // si es un archivo editable por codigo
         if (this.validCreateExtensions.includes(fileName.getExtension())) {
             try { 
-                this.attachCodeEditor(tabContent, fileName);
+                this.attachCodeEditor(content, fileName);
             } catch (e) {
                 alert('No se pudo cargar el archivo'); 
                 throw e;
@@ -127,70 +244,32 @@ export class FileManager extends IrbisElement {
 
         // si es una imagen
         else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileName.getExtension())) {
-            this.attachImage(tabContent, fileName);
+            this.attachImage(content, fileName);
         }
 
         // otros archivos
         else {
-            this.attachOthers(tabContent, fileName);
+            this.attachOthers(content, fileName);
         }
     }
 
-    tabAdd (index, tabLabel) {
-        let inputName = 'tab-'+index;
-        let input = Element.create('input', {
-            checked: true,
-            attributes: {
-                name: 'tabs',
-                type: 'radio',
-                id: inputName
-            }
-        });
-        let label = Element.create('label', {
-            classList: ['tab-label'],
-            attributes: {for: inputName},
-            textContent: tabLabel
-        });
-        let content = Element.create('div', {
-            classList: ['tab-content'],
-            innerHTML: '<p>cargando ...</p>'
-        });
-
-        this.tabsElement.append(input, label, content);
-        return content;
-    }
-
-    tabRemove (tabLabel) {
-        let self = this;
-        let labels = [...this.tabsElement.children]
-            .filter((el) => el.tagName.toLowerCase() == 'label');
-        labels.some(function (label) {
-            if (label.textContent.trim() == tabLabel) {
-                let input = label.previousElementSibling;
-                let content = label.nextElementSibling;
-                if (input.checked)
-                    self.tabsElement.children[0].checked = true;
-
-                input.remove();
-                content.remove();
-                label.remove();
-                return true;
-            }
-        });
-    }
-
-    /*** EDITOR ACTIONS ***/
-
     attachOthers (container, fileName) {
+        let buttonsBar = Element.create('div', {
+            attributes: {role: 'buttonbar'},
+            children: [
+                Element.create('button', {
+                    innerHTML: '<i class="fa fa-close" title="Cerrar"></i>',
+                    events: { click: (ev) => this.closeEditorAction(ev) }
+                }),
+                Element.create('button', {
+                    innerHTML: '<i class="fa fa-trash" title="Eliminar"></i>',
+                    events: { click: (ev) => this.deleteEditorAction(ev) }
+                })
+            ]
+        });
+
         container.replaceChildren([
-            Element.create('button', {
-                innerHTML: '<i class="fa fa-close" title="Cerrar"></i>',
-                events: { click: (ev) => this.closeEditorAction(ev) }
-            }),
-            Element.create('button', {
-                innerHTML: '<i class="fa fa-trash" title="Eliminar"></i>',
-                events: { click: (ev) => this.deleteEditorAction(ev) }
-            }),
+            buttonsBar,
             Element.create('p', {
                 textContent: 'No se puede editar este archivo'
             })
@@ -198,15 +277,22 @@ export class FileManager extends IrbisElement {
     }
 
     attachImage (container, fileName) {
+        let buttonsBar = Element.create('div', {
+            attributes: {role: 'buttonbar'},
+            children: [
+                Element.create('button', {
+                    innerHTML: '<i class="fa fa-close" title="Cerrar"></i>',
+                    events: { click: (ev) => this.closeEditorAction(ev) }
+                }),
+                Element.create('button', {
+                    innerHTML: '<i class="fa fa-trash" title="Eliminar"></i>',
+                    events: { click: (ev) => this.deleteEditorAction(ev) }
+                })
+            ]
+        });
+
         container.replaceChildren([
-            Element.create('button', {
-                innerHTML: '<i class="fa fa-close" title="Cerrar"></i>',
-                events: { click: (ev) => this.closeEditorAction(ev) }
-            }),
-            Element.create('button', {
-                innerHTML: '<i class="fa fa-trash" title="Eliminar"></i>',
-                events: { click: (ev) => this.deleteEditorAction(ev) }
-            }),
+            buttonsBar,
             Element.create('br'),
             Element.create('img', {
                 attributes: {
@@ -224,54 +310,64 @@ export class FileManager extends IrbisElement {
         try {
             let fileContent = await fetch.get('/cms/file?name='+fileName, {redirect: 'error'});
 
+            let buttonsBar = Element.create('div', {
+                attributes: {role: 'buttonbar'},
+                children: [
+                    Element.create('button', {
+                        innerHTML: '<i class="fa fa-save" title="Guardar"></i>',
+                        events: { click: (ev) => this.saveEditorAction(ev) }
+                    }),
+                    Element.create('button', {
+                        innerHTML: '<i class="fa fa-close" title="Cerrar"></i>',
+                        events: { click: (ev) => this.closeEditorAction(ev) }
+                    }),
+                    Element.create('button', {
+                        innerHTML: '<i class="fa fa-trash" title="Eliminar"></i>',
+                        events: { click: (ev) => this.deleteEditorAction(ev) }
+                    })
+                ]
+            });
+
             // se agregan los comandos
-            container.replaceChildren([
-                Element.create('button', {
-                    innerHTML: '<i class="fa fa-save" title="Guardar"></i>',
-                    events: { click: (ev) => this.saveEditorAction(ev) }
-                }),
-                Element.create('button', {
-                    innerHTML: '<i class="fa fa-close" title="Cerrar"></i>',
-                    events: { click: (ev) => this.closeEditorAction(ev) }
-                }),
-                Element.create('button', {
-                    innerHTML: '<i class="fa fa-trash" title="Eliminar"></i>',
-                    events: { click: (ev) => this.deleteEditorAction(ev) }
-                })
-            ]);
+            container.replaceChildren(buttonsBar);
 
             // si es html, se agrega el enrutador
             if (fileName.getExtension() == 'html') {
-                container.append(
+                buttonsBar.append(
                     Element.create('input', {
                         classList: ['file-route'],
                         attributes: {
                             type: 'text', 
                             placeholder: '/ruta/web',
+                            title: 'Ingrese la ruta de la página web',
                             value: await fetch.get('/cms?routefor='+fileName)
                         }
                     })
                 );
-                container.append(Element.create('a', {
-                    classList: ['btn-file'],
+                buttonsBar.append(Element.create('button', {
                     innerHTML: '<i class="fa fa-eye" title="Vista previa"></i>',
-                    attributes: {
-                        href: '/cms/preview/'+fileName,
-                        target: '_blank'
+                    events: {
+                        click: () => window.open('/cms/preview/'+fileName, '_blank')
                     }
                 }));
             }
 
             // se agrega el editor de codigo
             let editorElement = Element.create('textarea', {textContent: fileContent});
-            container.append(Element.create('br'), editorElement);
+            let editorContainer = Element.create('div', {
+                classList: ['code-editor'],
+                styles: {'font-size': '12px'},
+                children: [editorElement]
+            });
+            
+            container.append(editorContainer);
             editorElement.CodeMirror = CodeMirror.fromTextArea(editorElement, {
                 mode: this.modesExtensions[fileName.getExtension()],
                 tabSize: 4, 
                 lineNumbers: true,
-                theme: 'monokai',
+                //theme: 'monokai',
             });
-            editorElement.CodeMirror.setSize(null, 'calc(100vh - 13.5em)');
+            editorElement.CodeMirror.setSize(null, 'calc(100vh - 18em)');
         } catch (e) {
             alert('No se pudo cargar el archivo');
             throw e;
@@ -281,40 +377,5 @@ export class FileManager extends IrbisElement {
     detachCodeEditor (container) {
         let editor = container.querySelector('textarea');
         editor.CodeMirror.toTextArea();
-    }
-
-    saveEditorAction (ev) {
-        let tabContent = ev.currentTarget.parentElement;
-        let editor = tabContent.querySelector('textarea').CodeMirror;
-        let fileName = tabContent.previousElementSibling.textContent.trim();
-        let fileContent = editor.getValue();
-        fetch.put('/cms/file?name='+fileName, {
-            body: fileContent
-        }).then(() => alert('Archivo actualizado'));
-
-        // si una ruta existe esta se guarda
-        let routeInput = tabContent.querySelector('input.file-route');
-        if (routeInput) {
-            if (routeInput.vale && !routeInput.value.startsWith('/'))
-                routeInput.value = '/'+routeInput.value;
-            fetch.post('/cms?routefor='+fileName, {
-                body: { fileRoute: routeInput.value }
-            });
-        }
-    }
-
-    closeEditorAction (ev) {
-        let tabContent = ev.currentTarget.parentElement;
-        let fileName = tabContent.previousElementSibling.textContent.trim();
-        if (this.validCreateExtensions.includes(fileName.getExtension()))
-            this.detachCodeEditor(tabContent);
-        this.tabRemove(fileName);
-        return fileName;
-    }
-
-    deleteEditorAction (ev) {
-        if (!confirm('¿Está seguro de eliminar este archivo?')) return;
-        let fileName = this.closeEditorAction(ev);
-        this.detachFileName(fileName);
     }
 }

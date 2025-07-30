@@ -1,0 +1,93 @@
+{% extends "@irbis/layout.html" %}
+{% from '@irbis/macros.html' import user_actions %}
+
+{% block assets %}
+<link rel="stylesheet" type="text/css" href="/IrbisApps/Base/assets/w7.css"/>
+<script src="/IrbisApps/Base/assets/recordset.js" type="text/javascript"></script>
+<style>
+	/* HEADER */
+	.head {
+		padding: .5em 1em;
+		user-select: none;
+	}
+	.head-left {
+		float: left;
+		text-shadow: 1px 0px #ffffff, -1px 0px #b0b0b0;
+		font-size: 1.1em;
+	}
+	.head-right {
+		float: right;
+	}
+	.head a {
+		text-decoration: none;
+	}
+	/* FOOTER */
+	footer {
+		margin-bottom: 2em;
+		text-align: center;
+	}
+	a { cursor: pointer; }
+</style>
+{% endblock assets %}
+
+{% block content %}
+<!-- Cabecera -->
+<section class="head">
+	<div class="head-left">
+		<span>Project</span>
+	</div>
+
+	<div class="head-right">{{user_actions(user)}}</div>
+	<div style="clear:both"></div>
+</section>
+
+<!-- Contenido -->
+<section style="padding: 1em;" is="@project/project-manager.js">
+	<div role="buttonbar" style="margin-bottom: -1px;">
+		<button title="Nuevo proyecto" event-click="newProjectAction">
+			<!-- <i class="fa fa-folder"></i> -->
+			<span class="fa-stack fa-lg" style="font-size: .63em;">
+				<i class="fa fa-folder-o fa-stack-2x"></i>
+				<i class="fa fa-plus fa-stack-1x"></i>
+			</span>
+		</button>
+		<button title="Editar proyecto">
+			<i class="fa fa-cog"></i>
+		</button>
+		<select class="project-selector" event-change="changeProjectAction"></select>
+		
+		<span class="separator"></span>
+		<button title="Nueva tarea" event-click="newTaskAction">
+			<i class="fa fa-plus"></i>
+		</button>
+
+		<button class="edit-task" title="Editar tarea" event-click="editTaskAction" disabled>
+			<i class="fa fa-edit"></i>
+		</button>
+	</div>
+	
+	<!-- Proyectos -->
+	<ul class="project-container tree-view has-container"></ul>
+</section>
+
+<div id="edit-task-window" class="window active" role="dialog" style="max-width: 400px">
+	<div class="title-bar">
+		<div class="title-bar-text">Tarea</div>
+		<div class="title-bar-controls">
+			<button aria-label="Close" onclick="location.href = '#'"></button>
+		</div>
+	</div>
+	<div class="window-body has-space">
+		
+		<section class="field-row" style="justify-content: flex-end">
+			<button class="default">OK</button>
+			<button onclick="location.href = '#'">Cancel</button>
+		</section>
+	</div>
+</div>
+
+<!-- Pie de pagina -->
+<footer>
+	Projects Management by <a href="https://cavia.io">JorgeQuico</a> &copy;
+</footer>
+{% endblock content %}

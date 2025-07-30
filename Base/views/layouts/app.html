@@ -1,0 +1,61 @@
+{% extends "@irbis/layouts/base.html" %}
+
+{% block assets %}
+{% for app in apps %}
+    {% for script in app.assets.js %}
+        <script src="{{script}}" type="text/javascript"></script>
+    {% endfor %}
+    
+    {% for style in app.assets.css %}
+        <link rel="stylesheet" href="{{style}}" type="text/css"/>
+    {% endfor %}
+{% endfor%}
+{% endblock assets %}
+
+{% block site %}
+<ul id="menu-bar" role="menubar">
+    <li role="menuitem" tabindex="0" aria-haspopup="true">
+        {{ user ? user.name : 'Invitado' }}
+        <ul role="menu">
+            <li role="menuitem">
+                <i class="fa fa-user"></i>
+                <a>Preferencias</a>
+            </li>
+            <li role="menuitem" class="has-divider">
+                <i class="fa fa-key"></i>
+                <a event-click="actionUserChangePassword">Cambiar Contraseña</a>
+            </li>
+            <li role="menuitem">
+                <i class="fa fa-sign-out"></i>
+                <a event-click="actionUserLogout" title="Cierra la sesión">Salir</a>
+            </li>
+        </ul>
+    </li>
+    <li role="menuitem" tabindex="0">
+        Aplicaciones
+        <ul role="menu">
+            {% for app in apps %}
+            {% if app.label %}
+            <li role="menuitem">
+                <i class="fa fa-cube"></i>
+                <a href="/{{app.name}}">{{app.label}}</a>
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </li>
+    {% block menu %}{% endblock menu %}
+</ul>
+
+{% block content %}{% endblock content %}
+
+<script defer>
+    // el elemento menú principal
+    (function () {
+        document.irbisElements = document.irbisElements || {};
+        let menu = document.getElementById('menu-bar');
+        document.irbisElements['menu-bar'] = new MenuBar(menu);
+    })();
+</script>
+
+{% endblock site %}
