@@ -28,7 +28,7 @@
 			<i class="fa fa-upload"></i>
 			<a>
 				<label>Subir
-				<input class="hidden" event-change="doAction:uploadFileAction" name="files[]" type="file" multiple="">
+				<input event-change="doAction:uploadFileAction" class="hidden" name="files[]" type="file" multiple="">
 				</label>
 			</a>
 		</li>
@@ -53,7 +53,7 @@
 		{{ field_set("Scripts", readFiles('*.js'), ["js"], "fa-file-archive-o") }}
 		{{ field_set("Imágenes", readFiles('*.img'), ['jpg','jpeg','png','gif','svg'], "fa-file-image-o") }}
 		{{ field_set("Fuentes", readFiles('*.font'), ['eot','ttf','woff','woff2','otf'], "fa-file-powerpoint-o") }}
-		{{ field_set("Otros", readFiles('*')) }}
+		{{ field_set("Otros", readFiles('*.other')) }}
 	</article>
 </section>
 {% endblock content %}

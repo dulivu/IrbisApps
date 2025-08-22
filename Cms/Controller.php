@@ -24,9 +24,6 @@ CONST SCRIPT_TEMPLATE = "console.log('Cavia CMS')";
 CONST CSS_TEMPLATE = "body { font-family: Arial; }";
 
 
-/**
- * Gestor de contenido flat - CMS / sin base de datos
- */
 class Controller extends iController {
 	# alias para plantillas	= site
 	public static $name			= 'cms';
@@ -44,7 +41,6 @@ class Controller extends iController {
 	];
 
 	public function init () {
-		$server = Server::getInstance();
 		$request = Request::getInstance();
 
 		# crear el directorio de contenido de no existir
@@ -59,37 +55,17 @@ class Controller extends iController {
 		}
 
 		# registrar funciones y alias en twig
-		$irbis_controller = $server->getController('irbis');
-		$irbis_controller->environment->addFilter(new TwigFilter('asset', [$this, 'asset']));
-		$irbis_controller->environment->addFunction(new TwigFunction('readFiles', [$this, 'readFiles']));
-		$irbis_controller->loader->addPath($this->filePath("/content/templates"), 'site');
+		$irbis = $this->controller('irbis');
+		$irbis->environment->addFilter(new TwigFilter('asset', [$this, 'asset']));
+		$irbis->environment->addFunction(new TwigFunction('readFiles', [$this, 'readFiles']));
+		$irbis->loader->addPath($this->filePath("/content/templates"), 'site');
 	}
 
-	public function assemble ($only_binds=false) {
-		$routes = new RecordSet('routes');
-		$routes->bind();
-
-		if (!$only_binds) {
-			$routes->insert([
-				'name' => '/',
-				'file' => 'index.html'
-			]);
-		}
-	}
-
-	/**
-	 * twig filter
-	 * Contruye una ruta para un archivo en función de su extensión, si el
-	 * archivo es 'myfile.jpg' devuelve una ruta 'contet/images/myfile.jpg'
-	 * 
-	 * @param string $file		nombre del archivo
-	 * @param string $base		directorio base para devolver
-	 * @return string 			la ruta modificada
-	 */
 	public function asset ($file, $base='/IrbisApps/Cms') {
-		$extension = explode(".", basename($file ?? ''));
+		# obtiene la extensión del archivo
+		$extension = explode(".", basename($file));
 		$extension = end($extension);
-
+		# construye la ruta según la extensión
 		switch ($extension) {
 			case 'png':
 			case 'jpg':
@@ -106,29 +82,34 @@ class Controller extends iController {
 			case 'js': $file    = $base.'/content/scripts/'.$file; break;
 			default: $file      = $base.'/content/others/'.$file; break;
 		}
-        
+		# devuelve la ruta completa del archivo
 		return $file;
 	}
 
-	/**
-	 * twig function
-	 * Devuelve una lista de archivos que se encuentren dentro
-	 * de un directorio dentro del directorio del controlador
-	 * 
-	 * @param string $glob		comodin con el directorio a buscar
-	 * @return array[string]	arreglo con nombres de archivos encontrados
-	 */
 	public function readFiles (string $glob) {
+		# el glob siempre tiene que ser un comodín, *.img, *.html, *.other
+		if (!str_contains($glob, '*'))
+			throw new \Exception("El glob debe contener un comodín, ej: *.img");
+		# modifica el glob para el contenido del directorio
 		if (str_contains($glob, '*.img'))
         	$glob = '/content/images/'.str_replace('*.img', '*.{jpg,jpeg,png,gif,svg}', $glob);
 		elseif (str_contains($glob, '*.font'))
 			$glob = '/content/fonts/'.str_replace('*.font', '*.{eot,ttf,woff,woff2,otf}', $glob);
 		else
 			$glob = $this->asset($glob, '');
-        
+		# devuelve los archivos de un tipo de contenido
 		return array_map(function ($i) {
 			return basename($i);
 		}, $this->filePath($glob));
+	}
+
+	public function assemble ($only_binds=false) {
+		$routes = new RecordSet('routes');
+		$routes->bind();
+
+		if (!$only_binds) {
+			$routes->insert(['name' => '/', 'file' => 'index.html']);
+		}
 	}
 
 	/**
@@ -136,19 +117,28 @@ class Controller extends iController {
 	 * @route /site/(:all)
 	 */
 	public function webSite ($request) {
-		$path = $request->path(0);
-		$path = $path ? "/$path" : "/";
-		$tmpl = null;
-
-		$route = new RecordSet("routes");
-		$route->select(['name' => $path]);
-		if ($route->count()!== 1)
-			throw new HttpException("Not Found", 404);
-		
-		$tmpl = "@site/{$route[0]->file}";
-		return [$tmpl, [
+		$route = $request->path(0);
+		$template = $this->routeToTemplate("/$route");
+		return [$template, [
 			'request' => $request
 		]];
+	}
+
+	private function routeToTemplate ($route) {
+		$routes = $this->state('routes') ?: [];
+		$routes_keys = array_keys($routes);
+		$routes_values = array_values($routes);
+
+		if (in_array("$route", $routes_values)) {
+			$key = array_search("$route", $routes_values);
+			return "@site/{$routes_keys[$key]}.html";
+		} else {
+			header("HTTP/1.0 404 Not Found");
+			$v404 = $this->file('/content/templates/not_found.html');
+			return file_exists($v404) ? 
+				'@site/not_found.html' :
+				$this->server->view_404;
+		}
 	}
 
 	/**
