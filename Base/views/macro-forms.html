@@ -1,0 +1,19 @@
+{% macro char(record, field, label) %}
+<div class="field-control">
+    <label>
+        <span class="label">{{ label }}:</span>
+        <input name="{{ field }}" type="text" value="{{ record.(field) }}" />
+    </label>
+</div>
+{% endmacro %}
+
+{% macro password(record, field, label) %}
+<div class="field-control" is="@irbis/field-password.js">
+    <label>
+        <span class="label">{{ label }}:</span>
+        <input type="password"
+            alt-name="{{ field }}" 
+            event-keyup="changeValueAction" />
+    </label>
+</div>
+{% endmacro %}

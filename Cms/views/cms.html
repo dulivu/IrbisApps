@@ -1,59 +1,140 @@
-{% extends "@irbis/layouts/app.html" %}
-{% from '@cms/macros.html' import field_set %}
+{% extends "@irbis/layout-base-w7.html" %}
+{% import "@irbis/macro-assets.html" as assets %}
+{% set title = 'CMS' %}
+
 
 {% block assets %}
-{{parent()}}
-<link rel="stylesheet" href="/IrbisApps/Base/assets/codemirror-5.56.0/lib/codemirror.css"/>
-<!-- <link rel="stylesheet" href="/IrbisApps/Base/assets/codemirror-5.56.0/theme/monokai.css"/> -->
-<!-- <link rel="stylesheet" href="/IrbisApps/Base/assets/codemirror-vscode-theme.css"/> -->
-<script src="/IrbisApps/Base/assets/codemirror-5.56.0/lib/codemirror.js"></script>
-<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/xml/xml.js"></script>
-<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/javascript/javascript.js"></script>
-<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/css/css.js"></script>
-<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/htmlmixed/htmlmixed.js"></script>
-<script src="/IrbisApps/Base/assets/codemirror-5.56.0/mode/twig/twig.js"></script>
-<script src="/IrbisApps/Base/assets/codemirror-5.56.0/addon/mode/multiplex.js"></script>
+{{ parent() }}
+{{ assets.codemirror({
+    theme: 'monokai',
+    modes: ['xml', 'javascript', 'css', 'htmlmixed', 'twig'],
+    addons: ['mode/multiplex.js']
+}) }}
+<link rel="stylesheet" href="/IrbisApps/Cms/assets/cms.css"/>
 {% endblock assets %}
+
 
 {% block menu %}
 <li role="menuitem" tabindex="0">
-	Archivo
-	<ul role="menu">
-		<li role="menuitem">
-			<i class="fa fa-file-o"></i>
-			<a event-click="doAction:newFileAction">Nuevo</a>
-		</li>
+    Archivo
+    <ul id="file-menu" role="menu" is="@cms/file-menu.js">
+        <li role="menuitem">
+            <i class="fa fa-file-o"></i>
+            <a event-click="newFileAction">Nuevo</a>
+        </li>
 
-		<li role="menuitem">
-			<i class="fa fa-upload"></i>
-			<a>
-				<label>Subir
-				<input event-change="doAction:uploadFileAction" class="hidden" name="files[]" type="file" multiple="">
-				</label>
-			</a>
-		</li>
+        <li role="menuitem" class="has-divider">
+            <i class="fa fa-upload"></i>
+            <a>
+                <label>Subir
+                <input event-change="uploadFileAction" class="hidden" name="files[]" type="file" multiple="">
+                </label>
+            </a>
+        </li>
 
-		<li role="menuitem" aria-disabled="true">
-			<i class="fa fa-save"></i>
-			<a event-click="doAction:saveFileAction">Guardar</a>
-		</li>
-	</ul>
+        <li role="menuitem">
+            <i class="fa fa-navicon"></i>
+            <a event-click="openRoutesAction">Rutas</a>
+        </li>
+    </ul>
+</li>
+{# comandos del editor de codigo #}
+<li class="divider"></li>
+<li 
+    id="file-save" 
+    aria-disabled="true"
+    role="menuitem" 
+    tabindex="0" 
+    title="Guardar archivo"
+    onclick="$id('file-editor').component.fileSaveAction()">
+
+    <i class="fa fa-fw fa-save"></i>
+</li>
+<li 
+    id="file-close" 
+    aria-disabled="true"
+    role="menuitem" 
+    tabindex="0" 
+    title="Cerrar archivo (sin guardar cambios)"
+    onclick="$id('file-editor').component.fileCloseAction()">
+
+    <i class="fa fa-fw fa-close"></i>
+</li>
+<li 
+    id="file-delete" 
+    aria-disabled="true"
+    role="menuitem" 
+    tabindex="0" 
+    title="Eliminar archivo"
+    onclick="$id('file-editor').component.fileDeleteAction()">
+
+    <i class="fa fa-fw fa-trash"></i>
+</li>
+<li class="divider"></li>
+<li 
+    id="file-route"
+    aria-disabled="true"
+    role="menuitem" 
+    tabindex="0" 
+    onclick="$id('file-editor').component.createRouteAction()">
+
+    Establecer ruta
 </li>
 {% endblock menu %}
 
+
 {% block content %}
-<section style="padding: 1em;">
-	<menu role="tablist" aria-label="Tabs Template">
-		<button role="tab" aria-controls="file-manager" aria-selected="true">Inicio</button>
-	</menu>
-	<article role="tabpanel" id="file-manager" is="@cms/file-manager.js" main-component>
-		<!-- manager files -->
-		{{ field_set("Páginas", readFiles('*.html'), ["html"], "fa-file-code-o") }}
-		{{ field_set("Hojas de estilo", readFiles('*.css'), ["css"], "fa-file-text-o") }}
-		{{ field_set("Scripts", readFiles('*.js'), ["js"], "fa-file-archive-o") }}
-		{{ field_set("Imágenes", readFiles('*.img'), ['jpg','jpeg','png','gif','svg'], "fa-file-image-o") }}
-		{{ field_set("Fuentes", readFiles('*.font'), ['eot','ttf','woff','woff2','otf'], "fa-file-powerpoint-o") }}
-		{{ field_set("Otros", readFiles('*.other')) }}
-	</article>
-</section>
+<div class="cms-layout">
+    <section>
+        <ul class="tree-view has-container nav">
+            {% for dir in directories %}
+            <li>
+                <details is="@cms/file-directory.js" 
+                    record-extensions="{{ dir.extensions }}"
+                    record-icon="{{ dir.icon }}"
+                    record-color="{{ dir.color }}"
+                    record-name="{{ dir.name }}"
+                    record-id="{{ dir.id }}"
+                    {{ dir.opened ? 'open' }}>
+                    <summary event-click="openToggleAction">
+                        <i class="fa fa-fw fa-pencil-square-o" 
+                            event-click="openConfigAction" 
+                            title="Personalizar"></i>
+                        {{ dir.summary }}
+                    </summary>
+                    <ul event-click="openFileAction"></ul>
+                </details>
+            </li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="file-editor" class="tabs editor" is="@cms/file-editor.js">
+        <menu role="tablist" aria-label="Tabs Template">
+            <button role="tab" aria-controls="tab-ini" aria-selected="true">Inicio</button>
+        </menu>
+        <article role="tabpanel" id="tab-ini">
+            <div style="padding: 1em;">
+                <h2>Bienvenido a Irbis CMS</h2>
+                <div class="info muted">
+                    <p>
+                        Desde el panel derecho puedes administrar los archivos de tu sitio web.
+                        Visualizar, editar y/o eliminar archivos html, css o javascript.
+                    </p>
+
+                    <p>
+                        Utiliza el menú "Archivo" para crear nuevos 
+                        ó subir archivos desde tu dispositivo. También puedes 
+                        administrar las rutas de tu sitio web.
+                    </p>
+
+                    <p>
+                        Una vez tengas todos tus archivos creados y configurados, 
+                        haz click [ <a href="/">aqui</a> ]  para visitar tu nuevo sitio web.
+                    </p>
+                </div>
+            </div>
+        </article>
+    </section>
+</div>
 {% endblock content %}

@@ -1,0 +1,65 @@
+{% extends "@irbis/layout-base-w7.html" %}
+{% set title = 'Directorio CMS' %}
+
+{% block content %}
+<form method="POST" style="padding: 1em;">
+    <h3><i class="fa fa-fw fa-caret-right"></i> Configurar Directorio</h3>
+
+    <section class="field-section">
+        <fieldset>
+            <legend>Propiedades</legend>
+            <div class="field-control">
+                <label>
+                    <span class="label">Etiqueta:</span>
+                    <input name="summary" type="text" value="{{ record.summary }}"/>
+                </label>
+            </div>
+
+            <div class="field-control">
+                <label>
+                    <span class="label">Color:</span>
+                    <input name="color" type="text" value="{{ record.color }}" />
+                </label>
+            </div>
+
+            <div class="field-control">
+                <label>
+                    <span class="label">Ícono:</span>
+                    <input name="icon" type="text" value="{{ record.icon }}" />
+                </label>
+            </div>
+
+            <div class="field-control">
+                <label>
+                    <span class="label">Abierto</span>
+                    <input name="opened" type="checkbox" {{ record.opened ? 'checked' : '' }}/>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Contenido</legend>
+            <div class="field-control">
+                <label>
+                    <span class="label">Directorio:</span>
+                    <input name="name" type="text" value="{{ record.name }}" />
+                </label>
+            </div>
+
+            <div class="field-control">
+                <label>
+                    <span class="label">Extensión tipo:</span>
+                    <input name="asset" type="text" value="{{ record.asset }}" disabled/>
+                </label>
+            </div>
+
+            <div class="field-control">
+                <label>
+                    <span class="label">Extensiones:</span>
+                    <input name="extensions" type="text" value="{{ record.extensions }}"/>
+                </label>
+            </div>
+        </fieldset>
+    <section>
+</form>
+{% endblock %}

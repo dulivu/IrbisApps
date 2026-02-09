@@ -1,0 +1,45 @@
+{# 
+    proporciona un layout básico
+        - genera el mapa de importación de componentes
+        - crea el objeto irbis global
+        - despliega componentes declarados con el atributo is="@component.js"
+#}
+<!DOCTYPE html>
+<html>
+
+<head>
+<script type="importmap">{"imports": {
+{% for app in apps %}"@{{app.name}}/": "/{{app.namespace}}/components/"{{ loop.last ? '' : ',\n' }}{% endfor -%}
+}}</script>
+
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{ title ?: 'Irbis' }}</title>
+    <script type="text/javascript">
+        window.irbis = window.irbis || {
+            debugMode: parseInt("{{DEBUG_MODE}}")
+        };
+    </script>
+    <link rel="stylesheet" href="/IrbisApps/Base/assets/normalize.css"/>
+    <script src="/IrbisApps/Base/assets/irbis-functions.js"></script>
+    {% block assets %}{% endblock assets %}
+</head>
+
+<body>
+    {% block body %}{% endblock body %}
+    <script defer>
+        (function () {
+            document.querySelectorAll('[is]').forEach(function (el) {
+                const component = el.getAttribute('is');
+                import(component).then(function (module) {
+                    const key = Object.keys(module)[0] // usar la primera clave exportada
+                    const instance = new module[key](el);
+                    if (irbis.debugMode)
+                        console.log("Imported module for: ", instance);
+                });
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,22 @@
+{% extends "@irbis/layout-base-w7.html" %}
+{% import "@irbis/macro-forms.html" as forms %}
+{% set title = 'Usuario' %}
+
+{% block content %}
+<form method="POST" style="padding: 1em;">
+    <h3><i class="fa fa-fw fa-caret-right"></i> Usuario</h3>
+
+    <section class="field-section">
+        <fieldset>
+            <legend>Información</legend>
+            {{ forms.char(record, 'name', 'Nombre') }}
+            {{ forms.char(record, 'email', 'Correo') }}
+        </fieldset>
+        
+        <fieldset>
+            <legend>Seguridad</legend>
+            {{ forms.password(record, 'password', 'Contraseña') }}
+        </fieldset>
+    </section>
+</form>
+{% endblock %}

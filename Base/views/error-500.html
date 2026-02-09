@@ -86,24 +86,21 @@
                 <a href="/" class="link">Volver al inicio</a>
             </p>
             <p class="line3">
-                <b>Mensaje: </b><span class="error-message">{{error.message}}</span><br/>
-                <b>Tipo: </b>
-                <span class="error-class">{{error.class}}</span>
-                <span class="error-code">({{error.code}})</span><br/>
-                <b>Archivo: </b>
-                <span class="error-file">{{error.file}}</span>
-                <span class="error-line">({{error.line}})</span><br/>
+                <span>{{error.class}}</span><span>({{error.code}})</span><br/>
+                <span>{{error.message}}</span><br/><br/>
+                <span>{{error.file}}</span><span>({{error.line}})</span><br/>
             </p>
             {% if (error.trace) %}
-            <p class="line4">
-                <b>Traza:</b>
-            </p>
-            {% endif %}
-            <ul class="line4 error-trace">
+                <p class="line4">
+                    <b>Traza:</b>
+                </p>
+                
+                <ul class="line4 error-trace">
                 {% for trace in error.trace %}
-                    <li>{{trace.file}} (Línea: {{trace.line}})</li>
+                    <li>{{trace}}</li>
                 {% endfor %}
-            </ul>
+                </ul>
+            {% endif %}
         </div>
     </body>
 </html>

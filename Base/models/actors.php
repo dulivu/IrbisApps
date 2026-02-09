@@ -1,7 +1,12 @@
 <?php
 
+// model: directories
+
 return [
-    "name" => ["varchar", "required" => true],
-    "street" => ["varchar", "label" => "Dirección"],
-    "email" => ["varchar", "label" => "E-mail"]
+    // -= properties =-
+    
+    'name' => ['varchar', 'required' => true],
+    
+    'street' => ['varchar', 'label' => 'Dirección'],
+    'email' => ['varchar', 'label' => 'E-mail']
 ];

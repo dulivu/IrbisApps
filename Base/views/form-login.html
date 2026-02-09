@@ -1,0 +1,49 @@
+{% extends "@irbis/layout-base.html" %}
+
+{% block assets %}
+<link rel="stylesheet" href="/IrbisApps/Base/assets/w7.css" type="text/css"/>
+<style>
+    .window {
+        position: absolute;
+        width: 350px;
+        transform: translate(-50%, -50%);
+        top: 21em;
+        left: 50%;
+        user-select: none;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="window active">
+    <div class="title-bar">
+        <div class="title-bar-text"><i class="fa fa-user"></i> Iniciar Sesión</div>
+    </div>
+    <div class="window-body has-space">
+        <form method="POST">
+            <div class="field-control">
+                <label>
+                    <span class="label">Usuario:</span>
+                    <input name="username" type="text" autofocus autocomplete="off" />
+                </label>
+            </div>
+
+            <div class="field-control">
+                <label>
+                    <span class="label">Contraseña:</span>
+                    <input name="userpass" type="password"/>
+                </label>
+            </div>
+
+            <div class="field-control">
+                <button class="button default" type="submit">Enviar</button>
+            </div>
+        </form>
+    </div>
+    <div class="status-bar">
+        <p class="status-bar-field">{{ message ?? '' }}</p>
+    </div>
+</div>
+
+{% endblock %}

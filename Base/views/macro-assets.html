@@ -1,0 +1,25 @@
+{% macro codemirror(options) %}
+    <link rel="stylesheet" href="/IrbisApps/Base/codemirror-5.56.0/lib/codemirror.css"/>
+    <script src="/IrbisApps/Base/codemirror-5.56.0/lib/codemirror.js"></script>
+    {% if options.theme is defined %}
+        <link rel="stylesheet" href="/IrbisApps/Base/codemirror-5.56.0/theme/{{ options.theme }}.css"/>
+    {% endif %}
+    {% if options.modes is defined %}
+        {% for mode in options.modes %}
+            <script src="/IrbisApps/Base/codemirror-5.56.0/mode/{{ mode }}/{{ mode }}.js"></script>
+        {% endfor %}
+    {% endif %}
+    {% if options.addons is defined %}
+        {% for addon in options.addons %}
+            <script src="/IrbisApps/Base/codemirror-5.56.0/addon/{{ addon }}"></script>
+        {% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% macro fontawesome() %}
+    <link rel="stylesheet" href="/IrbisApps/Base/fonts/font-awesome.min.css" />
+{% endmacro %}
+
+{% macro normalize() %}
+    <link rel="stylesheet" href="/IrbisApps/Base/assets/normalize.css" />
+{% endmacro %}

@@ -1,0 +1,49 @@
+{% extends "@irbis/layout-base.html" %}
+
+{% block assets %}
+<link rel="stylesheet" href="/IrbisApps/Base/fonts/font-awesome.min.css"/>
+<link rel="stylesheet" href="/IrbisApps/Base/assets/w7.css"/>
+{% endblock assets %}
+
+{% block body %}
+
+<ul id="app-menu" role="menubar">
+
+    {# para vistas formulario #}
+    {% if record %} 
+    <li role="menuitem" tabindex="0" onclick="$('form').submit();">
+        <i class="fa fa-fw fa-save"></i> Guardar
+    </li>
+    <li role="menuitem" tabindex="0" onclick="window.close();">
+        <i class="fa fa-fw fa-close"></i> Cerrar
+    </li>
+    {% endif %}
+
+    {# para agregar nuevos menús #}
+    {% block menu %}{% endblock menu %}
+
+    {# menú de gestión de usuario #}
+    {% if user %}
+    <li role="menuitem" tabindex="0" aria-haspopup="true" style="margin-left: auto;">
+        <b><i class="fa fa-fw fa-user"></i> {{ user.name }}</b>
+        <ul role="menu" class="to-right" is="@irbis/win-menu-user.js" record-id="{{ user.id }}">
+            <li role="menuitem">
+                <i class="fa fa-user"></i>
+                <a event-click="openUserPreferencesAction">Preferencias</a>
+            </li>
+            <li role="menuitem">
+                <i class="fa fa-sign-out"></i>
+                <a event-click="actionUserLogout" title="Cierra la sesión">Salir</a>
+            </li>
+        </ul>
+    </li>
+    {% else %}
+    <li role="menuitem" tabindex="0" style="margin-left: auto;" onclick="window.location.href='/login'">
+        <b><i class="fa fa-fw fa-sign-in"></i> Iniciar Sesión</b>
+    </li>
+    {% endif %}
+</ul>
+
+{% block content %}{% endblock content %}
+
+{% endblock body %}

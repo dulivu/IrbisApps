@@ -1,30 +1,43 @@
-window.popup = function (options) {
-    let [width, height, url, name] = [640, 480, '', '__blank'];
-    if (options instanceof HTMLElement) {
-        width = options.getAttribute('data-popup-width') || width;
-        height = options.getAttribute('data-popup-height') || height;
-        url = options.getAttribute('data-popup-url');
-        name = options.getAttribute('data-popup-name') || name;
-    } else {
-        width = options.width || width;
-        height = options.height || height;
-        url = options.url;
-        name = options.name || name;
-    }
+$id = function (id) {
+    return document.getElementById(id);
+}
 
-    let left = (screen.width - width) / 2;
-    let top = (screen.height - height) / 2;
-    let params = 'width=' + width + ', height=' + height;
-    params += ', top=' + top + ', left=' + left;
-    params += ', directories=no';
-    params += ', location=no';
-    params += ', menubar=no';
-    params += ', resizable=no';
-    params += ', scrollbars=no';
-    params += ', status=no';
-    params += ', toolbar=no';
-    newwin = window.open(url, name, params);
-    if (window.focus) { newwin.focus() }
+$ = function (selector) {
+    return document.querySelector(selector);
+}
+
+$$ = function (selector) {
+    return document.querySelectorAll(selector);
+}
+
+window.popup = function (url, name, options) {
+    options = options || {};
+    name = name || '__blank';
+    const width = options.width || 640;
+    const height = options.height || 480;
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2;
+    const params = `width=${width}, height=${height}, left=${left}, top=${top}`;
+    const defaults = ', directories=no, location=no, menubar=no, resizable=no, scrollbars=no, status=no, toolbar=no';
+    const ref = window.open(url, name, params + defaults);
+    if (window.focus) { ref.focus() }
+    return ref;
+}
+
+window.submit = function (ev, adds) {
+    ev.preventDefault();
+    adds = adds || {};
+    const form = ev.currentTarget.closest('form');
+    Object.keys(adds).forEach((key) => {
+        form.append(Element.create('input', {
+            attributes: {
+                type: 'hidden',
+                name: key,
+                value: adds[key]
+            }
+        }));
+    });
+    form.submit();
 }
 
 String.toCamelCase = function (str) {
@@ -33,10 +46,31 @@ String.toCamelCase = function (str) {
     });
 }
 
+String.prototype.pathinfo = function (infoType) {
+    let fullPath = this.trim();
+    let dirname = fullPath.substring(0, fullPath.lastIndexOf('/')+1);
+    let basename = fullPath.split('/').pop();
+    let extension = basename.split('.').pop();
+    let filename = basename.substring(0, basename.lastIndexOf('.'));
+    let info = {
+        dirname: dirname,
+        basename: basename,
+        extension: extension,
+        filename: filename
+    }
+    if (infoType) {
+        return info[infoType];
+    } else {
+        return info;
+    }
+}
+
+// TODO: para retirar
 String.prototype.getExtension = function () {
-	return this.trim().substring(this.lastIndexOf('.')+1);
+	return this.substring(this.lastIndexOf('.')+1);
 };
 
+// TODO: para retirar
 String.prototype.getBaseName = function () {
 	return this.trim().substring(this.lastIndexOf('/')+1);
 };
@@ -157,22 +191,39 @@ class RequestError extends Error {
     }
 }
 
-fetch.json = function (url, options) {
-    options = options || {};
-    if (options.headers)
-        options.headers['Content-Type'] = 'application/json';
-    else options.headers = { 'Content-Type': 'application/json' };
-    // options.method = 'POST';
-    if (options.body)
+fetch.json = async function (url, options = {}) {
+    options.headers = options.headers || {};
+    options.headers['Content-Type'] = 'application/json';
+
+    if (options.body) {
+        options.method = options.method || 'POST';
         options.body = JSON.encode(options.body || {});
-    return fetch(url, options)
-        .then(function(response) {
-            if (response.ok) return response.json();
-            return response.json().then(function (json) {
-                throw new JsonRequestError(json);
-            });
-        });
-}
+    }
+
+    const response = await fetch(url, options);
+    const contentType = response.headers.get('Content-Type') || '';
+    const contentLength = response.headers.get('Content-Length');
+
+    if (
+        response.status === 204 ||
+        contentLength === '0' ||
+        !contentLength
+    ) {
+        return null;
+    }
+
+    if (!contentType.includes('application/json')) {
+        throw new Error('Response is not declared as application/json');
+    }
+
+    const json = await response.json();
+
+    if (!response.ok) {
+        throw new JsonRequestError(json);
+    }
+
+    return json;
+};
 
 fetch.get = function (url, options) {
     return fetch(url, options)
@@ -234,7 +285,7 @@ fetch.delete = function (url, options) {
         });
 }
 
-fetch.uploadFileInput = function (url, input) {
+fetch.upload = function (url, input) {
     if (!input instanceof HTMLInputElement) {
         throw new Error('Invalid input element');
     }
@@ -242,12 +293,12 @@ fetch.uploadFileInput = function (url, input) {
         throw new Error('No files selected');
     }
 
-    let formData = new FormData();
+    const formData = new FormData();
     [...input.files].forEach(
         (file) => formData.append(input.name, file)
     );
 
-    options = {
+    const options = {
         method: 'POST',
         body: formData
     };
@@ -293,15 +344,14 @@ class IrbisElement {
     constructor (element) {
         this.element = element;
         element.component = this;
-        let self = this;
+        const self = this;
         this.events_list.forEach(function (event) {
-            let elements = [...self.element.querySelectorAll('['+event+']')];
+            const elements = [...self.element.querySelectorAll('['+event+']')];
             if (self.element.hasAttribute(event)) elements.push(self.element);
             elements.forEach(function (el) {
-                let fn = el.getAttribute(event)
-                fn = fn.split(':')
+                const fn = el.getAttribute(event);
                 el.addEventListener(event.split('-')[1], async function (ev) {
-                    await self[fn[0]](ev, fn[1] || null);
+                    await self[fn](ev);
                 });
             });
         });

@@ -1,0 +1,31 @@
+{% extends "@irbis/layout-base-w7.html" %}
+{% set title = 'Rutas' %}
+
+{% block content %}
+<table class="full-width">
+    <thead>
+        <tr>
+            <th>Ruta</th>
+            <th>Archivo</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for record in recordset %}
+        <tr is="@irbis/record-row.js" 
+            record-model="{{ record.('@name') }}"
+            record-id="{{ record.id }}">
+            <td>{{ record.name }}</td>
+            <td>{{ record.file }}</td>
+            <td>
+                [<a class="text-red" 
+                    href="#" 
+                    event-click="deleteAction">
+                    Eliminar
+                </a>]
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock content %}
